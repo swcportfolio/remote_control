@@ -1,12 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".activity.add.SearchDeviceActivity">
-
+    tools:context=".activity.add.IrTestActivity"
+    android:orientation="vertical">
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -55,23 +54,25 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="#EFEFEF"
+            android:gravity="center"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:text="Step2.\n브랜드 선택"
+            android:textSize="17dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:background="#8F8F8F"
             android:gravity="center"
             android:paddingTop="2dp"
             android:paddingBottom="2dp"
             android:textStyle="bold"
-            android:text="Step2.\n브랜드 선택"
-            android:textSize="17dp" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="#EFEFEF"
-            android:gravity="center"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
             android:text="Step3.\n기기 테스트"
             android:textSize="17dp" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -84,51 +85,19 @@
             android:textSize="17dp" />
 
     </LinearLayout>
-
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="7dp"
-        android:background="@drawable/border_view"
-        android:orientation="horizontal">
-
-        <EditText
-            android:id="@+id/edt_search"
-            android:layout_width="230dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="5dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginBottom="5dp"
-            android:layout_weight="7"
-            android:gravity="center" />
-
-        <TextView
-            android:id="@+id/btn_search"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <ImageView
+            android:id="@+id/IV_test"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/ic_help"
             android:layout_gravity="center"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="5dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginBottom="5dp"
-            android:layout_weight="3"
-            android:background="@drawable/selector_view2"
-            android:padding="8dp"
-            android:text="검색"
-            android:textSize="14dp"
-            android:clickable="true"
-            android:textStyle="bold" />
+            android:layout_marginTop="100dp"
+            />
 
     </LinearLayout>
-
-    <ListView
-        android:id="@+id/lv_brand"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="10dp"
-        android:divider="@color/color_White"
-        android:dividerHeight="5dp" />
 
 </LinearLayout>

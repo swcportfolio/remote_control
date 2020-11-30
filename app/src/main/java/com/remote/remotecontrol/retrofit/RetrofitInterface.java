@@ -35,4 +35,8 @@ public interface RetrofitInterface {
     @POST("/quicksetlite.svc/GetBrands")
     Call<BrandModel> getBrand(@Header("Content-Type") String contentType, @Body Brands param);
 
+    // get Test Key
+    @POST("/quicksetlite.svc/LoadOSMAndGetNextKey")
+    Call<NextKeyModel> getTestKey(@Header("Content-Type") String contentType, @Body Nextkey param);
+
 }

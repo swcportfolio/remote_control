@@ -40,17 +40,17 @@ public class AddDeviceActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        btn_1.setOnClickListener(view-> deviceType(0,"TV","T"));
-        btn_2.setOnClickListener(view-> deviceType(1,"OTT","N"));
-        btn_3.setOnClickListener(view-> deviceType(2,"STB","C"));
-        btn_4.setOnClickListener(view-> deviceType(3,"Audio","A"));
-        btn_5.setOnClickListener(view-> deviceType(4,"Projector","T"));
-        btn_6.setOnClickListener(view-> deviceType(5,"Lighting","H"));
-        btn_7.setOnClickListener(view-> deviceType(6,"FAN","H"));
-        btn_8.setOnClickListener(view-> deviceType(7,"Air Conditioner","Z"));
+        btn_1.setOnClickListener(view-> deviceType("0","TV","T"));
+        btn_2.setOnClickListener(view-> deviceType("1","OTT","N"));
+        btn_3.setOnClickListener(view-> deviceType("2","STB","C"));
+        btn_4.setOnClickListener(view-> deviceType("3","Audio","A"));
+        btn_5.setOnClickListener(view-> deviceType("4","Projector","T"));
+        btn_6.setOnClickListener(view-> deviceType("5","Lighting","H"));
+        btn_7.setOnClickListener(view-> deviceType("6","FAN","H"));
+        btn_8.setOnClickListener(view-> deviceType("7","Air Conditioner","Z"));
     }
 
-    private void deviceType(int groupIds, String groups, String devTypeCodes) {
+    private void deviceType(String groupIds, String groups, String devTypeCodes) {
         Intent  intent = new Intent(getApplicationContext(),SearchDeviceActivity.class);
         intent.putExtra("groupIds",groupIds);
         intent.putExtra("groups",groups);

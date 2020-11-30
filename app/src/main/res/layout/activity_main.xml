@@ -78,7 +78,7 @@
             app:cardCornerRadius="10dp">
 
             <LinearLayout
-                android:id="@+id/btn_1"
+                android:id="@+id/btn_main_1"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
@@ -110,7 +110,7 @@
             app:cardCornerRadius="10dp">
 
             <LinearLayout
-                android:id="@+id/btn_2"
+                android:id="@+id/btn_main_2"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
@@ -153,7 +153,7 @@
             app:cardCornerRadius="10dp">
 
             <LinearLayout
-                android:id="@+id/btn_3"
+                android:id="@+id/btn_main_3"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
@@ -187,7 +187,7 @@
             app:cardCornerRadius="10dp">
 
             <LinearLayout
-                android:id="@+id/btn_4"
+                android:id="@+id/btn_main_4"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"

@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private final String TAG = MainActivity.class.getSimpleName();
 
     private ImageView IV_add;
-    private LinearLayout btn_1,btn_2,btn_3,btn_4;
+    private LinearLayout btn_main_1,btn_main_2,btn_main_3,btn_main_4;
 
     private UserUeiRC  userUeiRC = new UserUeiRC();
     private RetrofitClient client = new RetrofitClient();
@@ -43,10 +43,10 @@ public class MainActivity extends AppCompatActivity {
         IV_add = findViewById(R.id.IV_add);
 
         //LinearLayout btn
-        btn_1 = findViewById(R.id.btn_1);
-        btn_2 = findViewById(R.id.btn_2);
-        btn_3 = findViewById(R.id.btn_3);
-        btn_4 = findViewById(R.id.btn_4);
+        btn_main_1 = findViewById(R.id.btn_main_1);
+        btn_main_2 = findViewById(R.id.btn_main_2);
+        btn_main_3 = findViewById(R.id.btn_main_3);
+        btn_main_4 = findViewById(R.id.btn_main_4);
 
         getUeiRc();
     }
@@ -54,13 +54,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        btn_1.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, DeviceInfoActivity.class)));
+        btn_main_1.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, DeviceInfoActivity.class)));
 
-        btn_2.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, DeviceInfoActivity.class)));
+        btn_main_2.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, DeviceInfoActivity.class)));
 
-        btn_3.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, DeviceInfoActivity.class)));
+        btn_main_3.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, DeviceInfoActivity.class)));
 
-        btn_4.setOnClickListener(view -> {
+        btn_main_4.setOnClickListener(view -> {
         startActivity(new Intent(MainActivity.this, AddDeviceActivity.class ));
         });
         IV_add.setOnClickListener(view -> {
@@ -87,7 +87,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<UeiRcModel> call, Throwable t) {
-                Log.d(TAG ,"getUeiRc False network");
+                Log.d(TAG ,"getUeiRc False network"+t.toString());
+
             }
         });
 

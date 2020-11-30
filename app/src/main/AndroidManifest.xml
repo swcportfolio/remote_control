@@ -2,13 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.remote.remotecontrol"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="1.0">
 
     <uses-sdk
         android:minSdkVersion="23"
         android:targetSdkVersion="30" />
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -19,23 +19,20 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:testOnly="true"
-        android:theme="@style/Theme.RemoteControl" >
-        <activity android:name=".activity.add.AddDeviceInfoActivity" >
-        </activity>
-
-        <activity android:name="com.remote.remotecontrol.activity.add.AddDeviceActivity" >
-        </activity>
-        <activity android:name="com.remote.remotecontrol.activity.add.SearchDeviceActivity" >
-        </activity>
-        <activity android:name="com.remote.remotecontrol.activity.info.DeviceEditInfoActivity" />
-        <activity android:name="com.remote.remotecontrol.activity.info.DeviceInfoActivity" />
-        <activity android:name="com.remote.remotecontrol.activity.MainActivity" />
-
+        android:theme="@style/Theme.RemoteControl">
+        <activity android:name=".activity.add.IrTestActivity"></activity>
+        <activity android:name=".activity.add.AddDeviceInfoActivity"></activity>
+        <activity android:name=".activity.add.AddDeviceActivity"></activity>
+        <activity android:name=".activity.add.SearchDeviceActivity"></activity>
+        <activity android:name=".activity.info.DeviceEditInfoActivity" />
+        <activity android:name=".activity.info.DeviceInfoActivity" />
+        <activity android:name=".activity.MainActivity" />
         <activity
-            android:name="com.remote.remotecontrol.activity.LoadingActivity"
-            android:screenOrientation="portrait" >
+            android:name=".activity.LoadingActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
