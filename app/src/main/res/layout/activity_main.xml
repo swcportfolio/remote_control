@@ -27,11 +27,24 @@
             android:layout_height="0dp"
             android:layout_weight="1"/>
         <ImageView
+            android:id="@+id/IV_le_stt"
+            android:layout_width  ="38dp"
+            android:layout_height ="38dp"
+            android:src="@drawable/ic_bluetooth"
+            android:layout_marginTop="26dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/bluetooth_view"
+
+            />
+        <ImageView
             android:id="@+id/IV_add"
             android:layout_width  ="50dp"
             android:layout_height ="50dp"
             android:src="@drawable/ic_baseline_add_box_24"
-            android:layout_margin="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp"
             />
 
     </LinearLayout>

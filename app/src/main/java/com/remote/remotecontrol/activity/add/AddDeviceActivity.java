@@ -6,12 +6,15 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 
 import com.remote.remotecontrol.R;
 
 public class AddDeviceActivity extends AppCompatActivity {
+
+    private final String TAG = AddDeviceActivity.class.getSimpleName();
     private LinearLayout btn_1,btn_2,btn_3,btn_4,btn_5,btn_6,btn_7,btn_8;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +58,7 @@ public class AddDeviceActivity extends AppCompatActivity {
         intent.putExtra("groupIds",groupIds);
         intent.putExtra("groups",groups);
         intent.putExtra("devTypeCodes",devTypeCodes);
+        Log.d(TAG,"##deviceType## "+"groupIds:: "+groupIds+"groups:: "+groups+"devTypeCodes:: "+devTypeCodes);
         startActivity(intent);
     }
 

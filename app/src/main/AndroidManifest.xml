@@ -8,6 +8,7 @@
         android:minSdkVersion="23"
         android:targetSdkVersion="30" />
 
+    <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -20,10 +21,11 @@
         android:supportsRtl="true"
         android:testOnly="true"
         android:theme="@style/Theme.RemoteControl">
-        <activity android:name=".activity.add.IrTestActivity"></activity>
-        <activity android:name=".activity.add.AddDeviceInfoActivity"></activity>
-        <activity android:name=".activity.add.AddDeviceActivity"></activity>
-        <activity android:name=".activity.add.SearchDeviceActivity"></activity>
+        <activity android:name=".activity.ble.LeSttActivity"></activity>
+        <activity android:name=".activity.add.IrTestActivity" />
+        <activity android:name=".activity.add.AddDeviceInfoActivity" />
+        <activity android:name=".activity.add.AddDeviceActivity" />
+        <activity android:name=".activity.add.SearchDeviceActivity" />
         <activity android:name=".activity.info.DeviceEditInfoActivity" />
         <activity android:name=".activity.info.DeviceInfoActivity" />
         <activity android:name=".activity.MainActivity" />
