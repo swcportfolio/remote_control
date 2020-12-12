@@ -10,6 +10,8 @@
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
         android:allowBackup="true"
@@ -20,7 +22,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:testOnly="true"
-        android:theme="@style/Theme.RemoteControl">
+        android:theme="@style/Theme.RemoteControl"
+        android:networkSecurityConfig="@xml/network_security_config">
+
         <activity android:name=".activity.ble.LeSttActivity"></activity>
         <activity android:name=".activity.add.IrTestActivity" />
         <activity android:name=".activity.add.AddDeviceInfoActivity" />

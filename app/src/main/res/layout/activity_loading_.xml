@@ -8,8 +8,6 @@
     android:layout_gravity="center"
     tools:context=".activity.LoadingActivity"
     >
-
-
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="240dp"

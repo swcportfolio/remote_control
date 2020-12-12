@@ -16,7 +16,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:gravity="center">
             <TextView
                 android:layout_width="wrap_content"
@@ -25,12 +25,25 @@
                 android:gravity="center"
                 android:text="블루투스 / STT"
                 android:textSize="23dp"
+                android:layout_marginLeft="50dp"
                 android:textStyle="bold"
-                android:layout_marginRight="25dp"
+                />
+            <ImageView
+                android:id="@+id/btn_stt"
+                android:layout_width  ="35dp"
+                android:layout_height ="35dp"
+                android:layout_marginLeft="40dp"
+                android:src="@drawable/ic_baseline_mic_24"
+                android:padding="3dp"
+                android:background="@drawable/bluetooth_view"
                 />
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
-
+    <ScrollView
+        android:id="@+id/scroll_all"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -38,7 +51,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="544dp"
+                android:layout_height="550dp"
                 android:orientation="vertical">
 
                 <LinearLayout
@@ -57,14 +70,14 @@
                         android:text="Search" />
 
                     <Button
-                        android:id="@+id/btn_ble_connect"
+                        android:id="@+id/btn_data"
                         android:layout_width="100dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
                         android:layout_marginTop="10dp"
                         android:layout_marginEnd="10dp"
                         android:layout_weight="1"
-                        android:text="Connect" />
+                        android:text="data" />
                 </LinearLayout>
 
                 <TextView
@@ -76,8 +89,9 @@
                     android:textStyle="bold" />
 
                 <ScrollView
-                    android:id="@+id/scrollDlgHistory"
+                    android:id="@+id/scroll_ble"
                     android:layout_width="match_parent"
+                    android:background="@drawable/border_view"
                     android:layout_height="250dp">
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -87,14 +101,10 @@
                             android:id="@+id/TV_ble_log"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:background="@drawable/border_view"
                             android:layout_margin="5dp"
                             android:padding="5dp"/>
-
-
                     </LinearLayout>
                 </ScrollView>
-
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -103,19 +113,29 @@
                     android:text="--STT Log--"
                     android:textSize="20dp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/TV_stt_log"
+                <ScrollView
+                    android:id="@+id/scroll_stt"
                     android:layout_width="match_parent"
-                    android:layout_height="140dp"
-                    android:layout_margin="5dp"
-                    android:background="@drawable/border_view"/>
+                    android:background="@drawable/border_view"
+                    android:layout_height="150dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/TV_stt_log"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_margin="5dp"
+                            android:padding="5dp"/>
+                    </LinearLayout>
+                </ScrollView>
 
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="800dp"
+                android:layout_height="1000dp"
                 android:layout_margin="5dp"
                 android:orientation="vertical">
 
@@ -216,10 +236,8 @@
                 <ExpandableListView
                     android:id="@+id/gatt_services_list"
                     android:layout_width="match_parent"
-                    android:layout_height="800dp" />
+                    android:layout_height="1000dp" />
             </LinearLayout>
         </LinearLayout>
-
-
-
+</ScrollView>
 </LinearLayout>

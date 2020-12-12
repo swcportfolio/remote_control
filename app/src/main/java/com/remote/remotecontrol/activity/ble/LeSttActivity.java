@@ -5,7 +5,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.app.AlarmManager;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -17,14 +19,20 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.icu.text.SimpleDateFormat;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ExpandableListView;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
@@ -32,7 +40,17 @@ import android.widget.Toast;
 
 import com.remote.remotecontrol.R;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -40,36 +58,48 @@ import java.util.UUID;
 
 public class LeSttActivity extends AppCompatActivity {
 
-    private Button btn_ble_search,btn_ble_connect;
-    private TextView device_address,device_name;
-    private TextView mConnectionState;
-    private TextView mDataField, TV_ble_log,TV_stt_log;
-    private ScrollView scrollDlgHistory;
+    private final String TAG = LeSttActivity.class.getSimpleName();
 
+    private Button btn_ble_search,btn_ble_connect,btn_data;
+    private TextView device_address,device_name,mConnectionState,mDataField, TV_ble_log,TV_stt_log;
+    private ScrollView scroll_ble,scroll_all,scroll_stt;
+
+    private ImageView btn_stt;
     private Set<BluetoothDevice> mDevices;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice mRemoteDevice;
     private BluetoothLeService mBluetoothLeService;
     private BluetoothGattCharacteristic mNotifyCharacteristic;
 
-    private final String TAG = LeSttActivity.class.getSimpleName();
     private ExpandableListView mGattServicesList;
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
 
-
-    private boolean mConnected = false;
-    private static final int REQUEST_ENABLE_BT = 1 ;
-    int mPairedDeviceCount;
     private String mDeviceName,mDeviceAddress ;
     private final String LIST_NAME = "NAME";
     private final String LIST_UUID = "UUID";
+    private final String clientId     = "629fhvdo3y";                                    // Application Client ID";
+    private final String clientSecret = "4h6uYJg24jBte1fEqvv13SGs9WVYmrFBb9yHFmTq";     // Application Client Secret";
+    private String json = null;
+    private String result;
+
+    private boolean mConnected = false;
+
+    private static final int REQUEST_ENABLE_BT = 1 ;
+    int mPairedDeviceCount;
+    private int SPEECH_TO_TEXT =1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_le_stt);
 
-        scrollDlgHistory = findViewById(R.id.scrollDlgHistory);
+        //Speech to text버튼
+        btn_stt = findViewById(R.id.btn_stt);
+
+        //ScrollView
+        scroll_ble = findViewById(R.id.scroll_ble);
+        scroll_all = findViewById(R.id.scroll_all);
+        scroll_stt = findViewById(R.id.scroll_stt);
 
         // Sets up UI references.
         TV_ble_log = findViewById(R.id.TV_ble_log);
@@ -83,15 +113,16 @@ public class LeSttActivity extends AppCompatActivity {
         mGattServicesList.setOnChildClickListener(servicesListClickListner);
         mConnectionState = (TextView) findViewById(R.id.connection_state); //연결 상태 표시
         mDataField = (TextView) findViewById(R.id.data_value);
-        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());//Broadcast Receiver 등록
-      /*  getActionBar().setTitle(mDeviceName);
+        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter()); //Broadcast Receiver 등록
+
+        /*  getActionBar().setTitle(mDeviceName);
         getActionBar().setDisplayHomeAsUpEnabled(true);//액션바의 앱 아이콘 옆에 화살표를 만들어 전의 액티비티로 돌아가는 기능
-*/
+        */
 
         //Button
         btn_ble_search = findViewById(R.id.btn_ble_search);
-        btn_ble_connect = findViewById(R.id.btn_ble_connect);
-
+       // btn_ble_connect = findViewById(R.id.btn_ble_connect);
+        btn_data = findViewById(R.id.btn_data);
         // Toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -100,21 +131,55 @@ public class LeSttActivity extends AppCompatActivity {
         actionBar.setDisplayHomeAsUpEnabled(true);   // 뒤로가기 버튼 만들기
         actionBar.setHomeAsUpIndicator(R.drawable.ic_baseline_back);
 
+        //BLE LOG 이중 스크롤 이벤트 처리
+        scroll_ble.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_UP) {
+                    scroll_all.requestDisallowInterceptTouchEvent(false);
+                }
+                else {
+                    scroll_all.requestDisallowInterceptTouchEvent(true);
+                }
+                return false;
+            }
+        });
 
+       /* //STT LOG 이중 스크롤 이벤트 처리
+        scroll_stt.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_UP) {
+                    scroll_all.requestDisallowInterceptTouchEvent(false);
+                }
+                else {
+                    scroll_all.requestDisallowInterceptTouchEvent(true);
+                }
+                return false;
+            }
+        });*/
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        btn_ble_search.setOnClickListener(new View.OnClickListener() {
+        btn_ble_search.setOnClickListener(v -> checkBluetooth());
+
+        //stt 버튼
+        btn_stt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                checkBluetooth();
-
+                TV_stt_log.append("STT: mp3 파일 전송 시작\n");
+                scroll_stt.fullScroll(View.FOCUS_DOWN);
+                SpeechToText();
             }
         });
 
+        btn_data.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            }
+        });
     }
 
     private void checkBluetooth() {
@@ -123,7 +188,7 @@ public class LeSttActivity extends AppCompatActivity {
         if(mBluetoothAdapter == null){
             Log.d(TAG,"Bluetooth no available");
             TV_ble_log.append("[Bluetooth] : no available..\n");
-            scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+            scroll_ble.fullScroll(View.FOCUS_DOWN);
         }else{
             // 장치가 블루투스 지원하는 경우
             if (!mBluetoothAdapter.isEnabled()) {
@@ -148,7 +213,7 @@ public class LeSttActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Bonded Device");
         TV_ble_log.append("[Bluetooth] : Bonded Device..\n");
-        scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+        scroll_ble.fullScroll(View.FOCUS_DOWN);
 
         // 페어링 된 블루투스 장치의 이름 목록 작성
         final List<String> listItems = new ArrayList<String>();
@@ -160,11 +225,11 @@ public class LeSttActivity extends AppCompatActivity {
             //no bonded device => searching
             Log.d("Bluetooth", "No bonded device");
             TV_ble_log.append("[Bluetooth] : No bonded device\n");
-            scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+            scroll_ble.fullScroll(View.FOCUS_DOWN);
         }else{
             Log.d("Bluetooth", "Find bonded device");
             TV_ble_log.append("[Bluetooth] : Find bonded device\n");
-            scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+            scroll_ble.fullScroll(View.FOCUS_DOWN);
             // 취소 항목 추가
             listItems.add("Cancel");
 
@@ -178,7 +243,7 @@ public class LeSttActivity extends AppCompatActivity {
                     if (which == listItems.size()-1) {
                         Toast.makeText(dialog_.getContext(), "Choose cancel", Toast.LENGTH_SHORT).show();
                         TV_ble_log.append("[Bluetooth] : Choose cancel\n");
-                        scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+                        scroll_ble.fullScroll(View.FOCUS_DOWN);
                     } else {
                         String  selectedDeviceName =items[which].toString();
                         mRemoteDevice  = getDeviceFromBondedList(selectedDeviceName);
@@ -186,7 +251,7 @@ public class LeSttActivity extends AppCompatActivity {
                         mDeviceAddress = mRemoteDevice.getAddress();
                         Log.d(TAG,"Device Name : "+mRemoteDevice.getName()+"   DeviceAddress : "+mRemoteDevice.getAddress());
                         TV_ble_log.append("[Bluetooth] :Device Name :"+mDeviceName+"+DeviceAddress : +"+mDeviceAddress+"\n");
-                        scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+                        scroll_ble.fullScroll(View.FOCUS_DOWN);
                         device_name.setText(mDeviceName);
                         device_address.setText(mDeviceAddress);
                         DeviceControl();
@@ -237,7 +302,7 @@ public class LeSttActivity extends AppCompatActivity {
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         boolean isBind = bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE); //bindService->Service를 실행하고 결과를 Activity의 UI에 반영해주는 기능, mServiceConnection함수에서 연결 요청결과 값을 받는다.
         TV_ble_log.append("[Bluetooth] : bindService "+isBind+"\n");
-        scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+        scroll_ble.fullScroll(View.FOCUS_DOWN);
         //gattServiceIntent 기반으로 Service를 실행시키고 요청 하게된다.
         //세번째 인자는 바인딩 옵션을 설정하는 flags를 설정한다.
 
@@ -248,10 +313,10 @@ public class LeSttActivity extends AppCompatActivity {
                     if (mBluetoothLeService != null) {
                         final boolean result = mBluetoothLeService.connect(mDeviceAddress);
                         Log.d(TAG, "Connect request result=" + result);
-                        scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+                        scroll_ble.fullScroll(View.FOCUS_DOWN);
                     }else{
                         Log.d(TAG, "mBluetoothLeService null");
-                        scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+                        scroll_ble.fullScroll(View.FOCUS_DOWN);
                     }
                 }
             },1000);
@@ -264,20 +329,20 @@ public class LeSttActivity extends AppCompatActivity {
             if (!mBluetoothLeService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
                 TV_ble_log.append("[Bluetooth] : Unable to initialize Bluetooth\n");
-                scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+                scroll_ble.fullScroll(View.FOCUS_DOWN);
                 finish();
             }
             // Automatically connects to the device upon successful start-up initialization.
             boolean connect = mBluetoothLeService.connect(mDeviceAddress);// 장치 연결
             Log.d(TAG,"connect : "+connect);
             TV_ble_log.append("[Bluetooth] : BluetoothLeService : "+connect+"\n");
-            scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+            scroll_ble.fullScroll(View.FOCUS_DOWN);
         }
         @Override
         public void onServiceDisconnected(ComponentName componentName) { // 연결이 안되었을 경우
             mBluetoothLeService = null;
             TV_ble_log.append("[Bluetooth] : BluetoothLeService : false\n");
-            scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+            scroll_ble.fullScroll(View.FOCUS_DOWN);
         }
     };
     // 서비스에서 발생한 다양한 이벤트를 처리
@@ -291,7 +356,7 @@ public class LeSttActivity extends AppCompatActivity {
                 invalidateOptionsMenu();
                 Log.d(TAG,"GATT service GATT 서버");
                 TV_ble_log.append("[Bluetooth] :  GATT 서버 연결\n");
-                scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+                scroll_ble.fullScroll(View.FOCUS_DOWN);
 
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) { // ACTION_GATT_DISCONNECTED : GATT 서버에서 연결이 끊어졌습니다.
                 mConnected = false;
@@ -299,19 +364,19 @@ public class LeSttActivity extends AppCompatActivity {
                 invalidateOptionsMenu();
                 Log.d(TAG,"GATT service 연결이 끊어졌습니다.");
                 TV_ble_log.append("[Bluetooth] :  GATT 서버 끊김\n");
-                scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+                scroll_ble.fullScroll(View.FOCUS_DOWN);
                 clearUI();
 
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {// ACTION_GATT_SERVICES_DISCOVERED : GATT 서비스를 발견했습니다.
                 // Show all the supported services and characteristics on the user interface.
                 TV_ble_log.append("[Bluetooth] :  GATT 서버 발견\n");
-                scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+                scroll_ble.fullScroll(View.FOCUS_DOWN);
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
 
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) { /** ACTION_DATA_AVAILABLE : 기기에서 수신 된 데이터입니다. 이것은 읽기의 결과 일 수 있습니다.**/
                 displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
                 TV_ble_log.append("[Bluetooth] :  GATT 서버 데이터 수신\n");
-                scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+                scroll_ble.fullScroll(View.FOCUS_DOWN);
             }
         }
     };
@@ -356,13 +421,13 @@ public class LeSttActivity extends AppCompatActivity {
                         Log.d("GATTService / ","Descriptor::"+characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")));
                         Log.d("GATTService / ","Properties::"+characteristic.getProperties());*/
 
-                        TV_ble_log.append("[Bluetooth] :  UUID::"+characteristic.getUuid()+"\n");
-                        TV_ble_log.append("[Bluetooth] :  Value::"+characteristic.getValue()+"\n");
-                        scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
-                        TV_ble_log.append("[Bluetooth] :  Descriptor::"+characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))+"\n");
-                        scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
-                        TV_ble_log.append("[Bluetooth] :  Properties::"+characteristic.getProperties()+"\n");
-                        scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+                        TV_ble_log.append("UUID::"+characteristic.getUuid()+"\n");
+                        TV_ble_log.append("Value::"+characteristic.getValue()+"\n");
+                        scroll_ble.fullScroll(View.FOCUS_DOWN);
+                        TV_ble_log.append("Descriptor::"+characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))+"\n");
+                        scroll_ble.fullScroll(View.FOCUS_DOWN);
+                        TV_ble_log.append("Properties::"+characteristic.getProperties()+"\n");
+                        scroll_ble.fullScroll(View.FOCUS_DOWN);
 
                        /* byte data2[] = hexStringToByteArray("2554530a");
 
@@ -407,8 +472,8 @@ public class LeSttActivity extends AppCompatActivity {
             HashMap<String, String> currentServiceData = new HashMap<String, String>();
             uuid = gattService.getUuid().toString();
             Log.d("GATTService / ","displayGattServices::"+uuid);
-            TV_ble_log.append("[Bluetooth] :  displayGattServices::"+uuid+"\n");
-            scrollDlgHistory.fullScroll(View.FOCUS_DOWN);
+            TV_ble_log.append("displayGattServices::"+uuid+"\n");
+            scroll_ble.fullScroll(View.FOCUS_DOWN);
 
             currentServiceData.put(
                     LIST_NAME, GattAttributes.lookup(uuid, unknownServiceString));
@@ -470,4 +535,78 @@ public class LeSttActivity extends AppCompatActivity {
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
         return intentFilter;
     }
+    public void SpeechToText() {
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String imgFile = "/data/data/com.remote.remotecontrol/cache/2020_12_03_15_39_17.mp3";
+                    File voiceFile = new File(imgFile);
+
+                    String language = "Kor";        // 언어 코드 ( Kor, Jpn, Eng, Chn )
+                    String apiURL = "https://naveropenapi.apigw.ntruss.com/recog/v1/stt?lang=" + language;
+                    URL url = new URL(apiURL);
+
+                    HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+                    conn.setUseCaches(false);
+                    conn.setDoOutput(true);
+                    conn.setDoInput(true);
+                    conn.setRequestProperty("Content-Type", "application/octet-stream");
+                    conn.setRequestProperty("X-NCP-APIGW-API-KEY-ID", clientId);
+                    conn.setRequestProperty("X-NCP-APIGW-API-KEY", clientSecret);
+                   // TV_stt_log.append("STT: 서버 설정완료\n");
+                    OutputStream outputStream = conn.getOutputStream();
+                    FileInputStream inputStream = new FileInputStream(voiceFile);
+                    byte[] buffer = new byte[4096];
+                    int bytesRead = -1;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        outputStream.write(buffer, 0, bytesRead);
+                    }
+                    outputStream.flush();
+                    inputStream.close();
+                    BufferedReader br = null;
+                    int responseCode = conn.getResponseCode();
+                    if(responseCode == 200) { // 정상 호출
+                        br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                        //TV_stt_log.append("STT: 서버로부터 정상적으로 호출\n");
+                    } else {  // 오류 발생
+                        System.out.println("error!!!!!!! responseCode= " + responseCode);
+                        br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                    }
+                    String inputLine;
+
+                    if(br != null) {
+                        StringBuffer response = new StringBuffer();
+                        while ((inputLine = br.readLine()) != null) {
+                            response.append(inputLine);
+                        }
+                        br.close();
+                        System.out.println(response.toString());
+                        json = response.toString();
+                        JSONObject jsonObject = new JSONObject(json);
+                        result = jsonObject.getString("text");
+                        Log.d("TAG","result : "+result);
+                       // TV_ble_log.append("STT: 수신된 데이터>>"+result+"\nSTT: 종료"+"\n");
+
+                        Message msg = handler.obtainMessage();
+                        handler.sendMessage(msg);
+
+                    } else {
+                        System.out.println("error !!!");
+                    }
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+
+            }
+        });
+        thread.start();
+    }
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            TV_stt_log.append("STT: 수신된 데이터>>"+result+"\nSTT: 종료"+"\n");
+        }
+    };
 }
