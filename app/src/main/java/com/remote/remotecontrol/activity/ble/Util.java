@@ -1,6 +1,8 @@
 package com.remote.remotecontrol.activity.ble;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Util {
     // private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
@@ -8,6 +10,8 @@ public class Util {
 
     public static int count = 1;
     public static int dataLength = 134;
+    public static ArrayList<Byte> alldata = new ArrayList<>();
+    public static int bp = 128;
 
     public static String bytesToHex(byte[] bytes) {
         byte[] hexChars = new byte[bytes.length * 2];
@@ -37,14 +41,18 @@ public class Util {
     }
 
     public static byte[] getByte(byte[] bytes) {
-        byte[] allData = new byte[128];
+
+        // 헤더 6byte 제거
+        byte[] pcmData = new byte[128];
         int j =0;
 
         for(int i = 6 ;i<bytes.length;i++){
-            allData[j] = bytes[i];
+          //  pcmData[j] = bytes[i];
+            alldata.add(pcmData[j]= bytes[i]);
             j++;
         }
-        return allData;
+
+        return pcmData;
     }
 
     public static byte[] hexStringToByteArray(String s) {
@@ -55,5 +63,18 @@ public class Util {
         }
 
         return data;
+    }
+    public static ArrayList<Byte> getAllData (){
+        return alldata;
+    }
+    public static byte[] arrToByte(List<Byte> arr){
+        byte [] toByte = new byte[arr.size()];
+        int  i = 0;
+
+       for(Byte b : arr){
+           toByte[i] = b;
+           i++;
+       }
+        return toByte;
     }
 }

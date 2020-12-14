@@ -38,17 +38,31 @@ import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
+
+import javax.xml.transform.stream.StreamSource;
+
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
@@ -78,16 +92,17 @@ public class BluetoothLeService extends Service {
     public final static String EXTRA_DATA =
             "com.example.bluetooth.le.EXTRA_DATA";
 
-    public final static UUID UUID_SERVICE                 =  UUID.fromString(GattAttributes.UUID_SERVICE);
-    public final static UUID UUID_TX                      =  UUID.fromString(GattAttributes.UUID_TX);
-    public final static UUID UUID_RX                      =  UUID.fromString(GattAttributes.UUID_RX);
-    public final static UUID UUID_CTL                     =  UUID.fromString(GattAttributes.UUID_CTL);
-    public final static UUID CLIENT_CHARACTERISTIC_CONFIG =  UUID.fromString(GattAttributes.CLIENT_CHARACTERISTIC_CONFIG); //Descriptor
+    public final static UUID UUID_SERVICE = UUID.fromString(GattAttributes.UUID_SERVICE);
+    public final static UUID UUID_TX = UUID.fromString(GattAttributes.UUID_TX);
+    public final static UUID UUID_RX = UUID.fromString(GattAttributes.UUID_RX);
+    public final static UUID UUID_CTL = UUID.fromString(GattAttributes.UUID_CTL);
+    public final static UUID CLIENT_CHARACTERISTIC_CONFIG = UUID.fromString(GattAttributes.CLIENT_CHARACTERISTIC_CONFIG); //Descriptor
 
 
     private StringBuffer stb = new StringBuffer();
     private String buffer;
-
+    private boolean isCount = false;
+    private int count = 0;
     private int offset = 5;
     //App 이 갖는 GATT 이벤트에 대한 콜백 메서드를 구현합니다.
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
@@ -115,23 +130,23 @@ public class BluetoothLeService extends Service {
         /**
          * allback invoked when the list of remote services, characteristics and descriptors
          * setCharacteristicNotification:: Read/Write/Notification 권한 설정
-          */
+         */
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) { //BLE 장치에서 GATT 서비스들이 발견되면 호출된다.
             if (status == BluetoothGatt.GATT_SUCCESS) { //gatt 서비스들을 이용가능한지 확인 할 수 있다.
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
 
-                BluetoothGattService openService        = gatt.getService(UUID_SERVICE);
-                BluetoothGattCharacteristic openTxChar  = openService.getCharacteristic(UUID.fromString("ab5e0004-5a21-4f05-bc7d-af01f617b664")); // 데이터 수신 UUID
+                BluetoothGattService openService = gatt.getService(UUID_SERVICE);
+                BluetoothGattCharacteristic openTxChar = openService.getCharacteristic(UUID.fromString("ab5e0004-5a21-4f05-bc7d-af01f617b664")); // 데이터 수신 UUID
                 boolean notiResult = gatt.setCharacteristicNotification(openTxChar, true); // Notification 활성화 및 데이터 receive ::
                 //boolean readResult = mBluetoothGatt.readCharacteristic(openTxChar);
-               // Log.d("GATTService", "Characteristic Read : " + readResult);
+                // Log.d("GATTService", "Characteristic Read : " + readResult);
                 Log.d("GATTService", "Characteristic Noti : " + notiResult);
 
                 BluetoothGattDescriptor descriptor = openTxChar.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG); //데이터 수신 UUID 에 특성을 설명하는 메타데이타
                 descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE); // write했다가 read 할 떄 데이터를 읽기 위한 작업 그래서 descriptor가 필요
                 boolean success = mBluetoothGatt.writeDescriptor(descriptor); //변경된 UUID descriptor // 설명된 데이타를 Gatt서버에 write한다.
-                Log.d("GATTService","writeDescriptor:"+success);
+                Log.d("GATTService", "writeDescriptor:" + success);
 
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
@@ -139,7 +154,7 @@ public class BluetoothLeService extends Service {
         }
 
         @Override
-        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic,int status) { ////characteristic를 읽는데 성공하면 호출
+        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) { ////characteristic를 읽는데 성공하면 호출
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
             }
@@ -160,27 +175,28 @@ public class BluetoothLeService extends Service {
                 @Override
                 public void run() {
 
-                    if(characteristic.getUuid().equals(UUID_CTL)){
+                    if (characteristic.getUuid().equals(UUID_CTL)) {
                         Log.d("GATTService ", "Characteristic Noti UUID : " + characteristic.getUuid());
                         Log.d("GATTService ", "Characteristic Noti Value (Byte) : " + Util.byteArrayToHex(characteristic.getValue()));
                         Log.d("GATTService ", "Characteristic Noti Value (String) : " + new String(characteristic.getValue(), StandardCharsets.UTF_8));
-                        byte [] searchData = characteristic.getValue();
-                        String firstData   = String.valueOf(searchData[0]);
+                        byte[] searchData = characteristic.getValue();
+                        String firstData = String.valueOf(searchData[0]);
 
-                        if (firstData.equals("8")){ //Master >> searchData
-                            Log.d("GATTService ", "getSearchData" );
+                        if (firstData.equals("8")) { //Master >> searchData
+                            Log.d("GATTService ", "getSearchData");
 
-                            BluetoothGattService openService     = gatt.getService(UUID_SERVICE);
-                            BluetoothGattCharacteristic openMic  = openService.getCharacteristic(UUID_TX);
+                            BluetoothGattService openService = gatt.getService(UUID_SERVICE);
+                            BluetoothGattCharacteristic openMic = openService.getCharacteristic(UUID_TX);
 
                             byte data[] = Util.hexStringToByteArray("0C00000000000000000000000000000000000000"); // open Mic
                             Log.d("GATTService ", "Mic_open : " + Util.byteArrayToHex(data));
                             Log.d(TAG, "GATTService " + writeCharacteristic(openMic, data));
-                        }else if(firstData.equals("4")) {
-                            Log.d("GATTService ", "Audio_start" );
 
-                            BluetoothGattService openService        = gatt.getService(UUID_SERVICE);
-                            BluetoothGattCharacteristic openTxChar  = openService.getCharacteristic(UUID_RX); // 데이터 수신 UUID
+                        } else if (firstData.equals("4")) {
+                            Log.d("GATTService ", "Audio_start");
+
+                            BluetoothGattService openService = gatt.getService(UUID_SERVICE);
+                            BluetoothGattCharacteristic openTxChar = openService.getCharacteristic(UUID_RX); // 데이터 수신 UUID
                             boolean notiResult = gatt.setCharacteristicNotification(openTxChar, true); // Notification 활성화 및 데이터 receive ::
                             //boolean readResult = mBluetoothGatt.readCharacteristic(openTxChar);
                             // Log.d("GATTService", "Characteristic Read : " + readResult);
@@ -189,44 +205,39 @@ public class BluetoothLeService extends Service {
                             BluetoothGattDescriptor descriptor = openTxChar.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG); //데이터 수신 UUID 에 특성을 설명하는 메타데이타
                             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE); // write했다가 read 할 떄 데이터를 읽기 위한 작업 그래서 descriptor가 필요
                             boolean success = mBluetoothGatt.writeDescriptor(descriptor); //변경된 UUID descriptor // 설명된 데이타를 Gatt서버에 write한다.
-                            Log.d("GATTService","writeDescriptor:"+success);
-                        }
-                        else if(firstData.equals("C")){
-                            Log.d("TAG","GATTService: Mic_open_error ");
-                        }else{
-                            Log.d("TAG","GATTService: default");
-                        }
-                    }else  if(characteristic.getUuid().equals(UUID_RX)){
-                        Log.d("GATTService ", "Audio_data" );
+                            Log.d("GATTService", "writeDescriptor:" + success);
 
+                        } else if (firstData.equals("C")) {
+                            Log.d("TAG", "GATTService: Mic_open_error ");
+                        } else if (firstData.equals("0")) {
+                            Log.d("TAG", "GATTService: Mic_close");
+                        } else if (firstData.equals("A")) {
+                            Log.d("TAG", "audio_sync");
+                        }
+
+                    } else if (characteristic.getUuid().equals(UUID_RX)) {
+                        Log.d("GATTService ", "Audio_data");
                         Log.d("GATTService ", "Characteristic Noti UUID : " + characteristic.getUuid());
-                     Log.d("GATTService ", "Characteristic Noti Value (Byte) : " + Util.byteArrayToHex(characteristic.getValue()));
-                      /*  byte[]  getData = Util.getByte(characteristic.getValue());
-                        InputStream targetStream = new ByteArrayInputStream(getData);
+                        //  Log.d("GATTService ", "Characteristic Noti Value (Byte) : " + Util.byteArrayToHex(characteristic.getValue()));
 
-                        DataOutputStream output = null;*/
+                        byte[] getData = Util.getByte(characteristic.getValue());
+                        Log.d("GATTService ", "Characteristic getData : " + Util.byteArrayToHex(getData));
+                        if (count == 0) {
+                            count = -1;
+                            Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    isCount = true;
+                                }
+                            }, 2500);
+
+                        }
 
 
-
-                        /*String fileName = "test.txt";
-                        File file = new File("/data/data/com.remote.remotecontrol/cache/"+fileName);
-                        AudioFormat format = new AudioFormat(8000, 16, 1, true, false);
-                        AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(
-                                decodedData), format, decodedData.length), AudioFileFormat.Type.WAVE, outFile);
-                        FileOutputStream fos = null;
-                        try{
-                            fos = new FileOutputStream(file);
-                            fos.write(getData);
-                            fos.close();
-
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }*/
                         //Log.d("GATTService ", "Characteristic getData = Util (Byte) : " + Util.byteArrayToHex(getData));
 
-                       // Util.byteArrayToHex(ADPCMDecoder.decodeBlock(getData,1));
+                        // Util.byteArrayToHex(ADPCMDecoder.decodeBlock(getData,1));
                     }
 
                 /*    if(firstData.equals("8")){
@@ -245,11 +256,140 @@ public class BluetoothLeService extends Service {
                 }
 
             });
+            if (isCount) {
+                isCount = false;
+                    /*BluetoothGattService openService = gatt.getService(UUID_SERVICE);
+                    BluetoothGattCharacteristic openTxChar = openService.getCharacteristic(UUID_CTL); // 데이터 수신 UUID
+                    boolean notiResult = gatt.setCharacteristicNotification(openTxChar, true); // Notification 활성화 및 데이터 receive ::
+                    //boolean readResult = mBluetoothGatt.readCharacteristic(openTxChar);
+                    // Log.d("GATTService", "Characteristic Read : " + readResult);
+                    Log.d("GATTService", "Characteristic Noti : " + notiResult);
+
+                    BluetoothGattDescriptor descriptor = openTxChar.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG); //데이터 수신 UUID 에 특성을 설명하는 메타데이타
+                    descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE); // write했다가 read 할 떄 데이터를 읽기 위한 작업 그래서 descriptor가 필요
+                    boolean success = mBluetoothGatt.writeDescriptor(descriptor); //변경된 UUID descriptor // 설명된 데이타를 Gatt서버에 write한다.*/
+
+                BluetoothGattService openServiceTX = gatt.getService(UUID_SERVICE);
+                BluetoothGattCharacteristic closeMic = openServiceTX.getCharacteristic(UUID_TX);
+
+                byte data[] = Util.hexStringToByteArray("0D00000000000000000000000000000000000000"); // close Mic
+                Log.d("GATTService ", "MicClose : " + Util.byteArrayToHex(data));
+
+
+                if (writeCharacteristic(closeMic, data)) {
+
+                    Log.d(TAG, "GATTService writeCharacteristic mic close true");
+                    Log.d(TAG, "GATTService getAllDataSize :" + Util.getAllData().size());
+                    ArrayList<Byte> temp = Util.getAllData();
+                    PcmToWav pw = new PcmToWav();
+                    //Log.d("GATTService ", "arrToByte : " + Util.arrToByte(temp).length);
+
+                    //pcm file 생성하기
+                    mFilePath = "/data/data/com.remote.remotecontrol/cache/record.pcm";
+                    FileOutputStream fos = null;
+
+
+                    try {
+                        fos = new FileOutputStream(mFilePath);
+                        fos.write( Util.arrToByte(temp), 0, temp.size());
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                            // pcm file to war file
+                            File read = new File("/data/data/com.remote.remotecontrol/cache/record.pcm");
+                            File out = new File("/data/data/com.remote.remotecontrol/cache/mic.wav");
+
+                            try {
+                                pw.PCMToWAV(read, out, 1, 44100, 16);
+
+                                Thread thread = new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            String imgFile = "/data/data/com.remote.remotecontrol/cache/mic.wav";
+                                            File voiceFile = new File(imgFile);
+
+                                            String language = "Kor";        // 언어 코드 ( Kor, Jpn, Eng, Chn )
+                                            String apiURL = "https://naveropenapi.apigw.ntruss.com/recog/v1/stt?lang=" + language;
+                                            URL url = new URL(apiURL);
+
+                                            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                                            conn.setUseCaches(false);
+                                            conn.setDoOutput(true);
+                                            conn.setDoInput(true);
+                                            conn.setRequestProperty("Content-Type", "application/octet-stream");
+                                            conn.setRequestProperty("X-NCP-APIGW-API-KEY-ID", clientId);
+                                            conn.setRequestProperty("X-NCP-APIGW-API-KEY", clientSecret);
+                                            // TV_stt_log.append("STT: 서버 설정완료\n");
+                                            OutputStream outputStream = conn.getOutputStream();
+                                            FileInputStream inputStream = new FileInputStream(voiceFile);
+                                            byte[] buffer = new byte[4096];
+                                            int bytesRead = -1;
+                                            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                                                outputStream.write(buffer, 0, bytesRead);
+                                            }
+                                            outputStream.flush();
+                                            inputStream.close();
+                                            BufferedReader br = null;
+                                            int responseCode = conn.getResponseCode();
+                                            if (responseCode == 200) { // 정상 호출
+                                                br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                                                //TV_stt_log.append("STT: 서버로부터 정상적으로 호출\n");
+                                            } else {  // 오류 발생
+                                                System.out.println("error!!!!!!! responseCode= " + responseCode);
+                                                br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                                            }
+                                            String inputLine;
+
+                                            if (br != null) {
+                                                StringBuffer response = new StringBuffer();
+                                                while ((inputLine = br.readLine()) != null) {
+                                                    response.append(inputLine);
+                                                }
+                                                br.close();
+                                                System.out.println(response.toString());
+                                                json = response.toString();
+                                                JSONObject jsonObject = new JSONObject(json);
+                                                String result = jsonObject.getString("text");
+                                                Log.d("TAG", "result : " + result);
+                                                // TV_ble_log.append("STT: 수신된 데이터>>"+result+"\nSTT: 종료"+"\n");
+
+
+                                            } else {
+                                                System.out.println("error !!!");
+                                            }
+                                        } catch (Exception e) {
+                                            System.out.println(e);
+                                        }
+                                    }
+                                });
+
+                                thread.start();
+                            } catch (FileNotFoundException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+
+
+                } else {
+                    Log.d(TAG, "GATTService writeCharacteristic mic close fales");
+                }
+            }
+
         }
 
 
     };
 
+    private String json = null;
+    private String mFilePath = null;
+    private final String clientId = "629fhvdo3y";                                    // Application Client ID"
+    private final String clientSecret = "4h6uYJg24jBte1fEqvv13SGs9WVYmrFBb9yHFmTq";     // Application Client Secret"
 
     private void broadcastUpdate(final String action) { // 인자가 하나인 action DeviceControlActivity로 Message 날린다.
         final Intent intent = new Intent(action);
@@ -342,11 +482,10 @@ public class BluetoothLeService extends Service {
      * Connects to the GATT server hosted on the Bluetooth LE device.
      *
      * @param address The device address of the destination device.
-     *
      * @return Return true if the connection is initiated successfully. The connection result
-     *         is reported asynchronously through the
-     *         {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
-     *         callback.
+     * is reported asynchronously through the
+     * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
+     * callback.
      */
     public boolean connect(final String address) {
         if (mBluetoothAdapter == null || address == null) { //null 검사
@@ -424,10 +563,10 @@ public class BluetoothLeService extends Service {
     }
 
     /**
-     *  제공 특성에 대한 알림을 활성화하거나 비활성화
+     * 제공 특성에 대한 알림을 활성화하거나 비활성화
      *
      * @param characteristic Characteristic to act on.
-     * @param enabled If true, enable notification.  False otherwise.
+     * @param enabled        If true, enable notification.  False otherwise.
      */
     public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic, //BLE 장치가 데이터를 보낼 때를 기다려, 보내면 받아오도록 리스너를 설정한다.
                                               boolean enabled) {
@@ -440,11 +579,11 @@ public class BluetoothLeService extends Service {
         mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);/*ENABLE_NOTIFICATION_VALUE*/
         //if (UUID_URINE_ANALYZER.equals(characteristic.getUuid())) {
 
-            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG); //데이터 수신 UUID 에 특성을 설명하는 메타데이타
-            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE); // write했다가 read 할 떄 데이터를 읽기 위한 작업 그래서 descriptor가 필요
-            mBluetoothGatt.writeDescriptor(descriptor); //변경된 UUID descriptor // 설명된 데이타를 Gatt서버에 write한다.
+        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG); //데이터 수신 UUID 에 특성을 설명하는 메타데이타
+        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE); // write했다가 read 할 떄 데이터를 읽기 위한 작업 그래서 descriptor가 필요
+        mBluetoothGatt.writeDescriptor(descriptor); //변경된 UUID descriptor // 설명된 데이타를 Gatt서버에 write한다.
 
-            Log.d(TAG, "Service Notification Execution");
+        Log.d(TAG, "Service Notification Execution");
         //}
 
     }
@@ -460,8 +599,10 @@ public class BluetoothLeService extends Service {
 
         return mBluetoothGatt.getServices();
     }
+
     /**
      * 연결된 디바이스에 데이터 쓰기
+     *
      * @param characteristic
      * @param data
      * @return
@@ -474,7 +615,6 @@ public class BluetoothLeService extends Service {
         characteristic.setValue(data);
         return mBluetoothGatt.writeCharacteristic(characteristic);
     }
-
 
 
 }
