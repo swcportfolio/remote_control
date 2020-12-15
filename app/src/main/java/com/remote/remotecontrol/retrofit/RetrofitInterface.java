@@ -39,4 +39,7 @@ public interface RetrofitInterface {
     @POST("/quicksetlite.svc/LoadOSMAndGetNextKey")
     Call<NextKeyModel> getTestKey(@Header("Content-Type") String contentType, @Body Nextkey param);
 
+    // hax String send
+    @POST("/ws/file/convert")
+    Call<STTModel> convertIo(@Header("Content-Type") String contentType, @Body ConvertIO param);
 }

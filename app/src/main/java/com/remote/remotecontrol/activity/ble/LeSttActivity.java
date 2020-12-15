@@ -39,6 +39,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.remote.remotecontrol.R;
+import com.remote.remotecontrol.retrofit.ConvertIO;
+import com.remote.remotecontrol.retrofit.RetrofitClient;
+import com.remote.remotecontrol.retrofit.STTModel;
 
 import org.json.JSONObject;
 
@@ -55,6 +58,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LeSttActivity extends AppCompatActivity {
 
@@ -83,10 +90,11 @@ public class LeSttActivity extends AppCompatActivity {
     private String result;
 
     private boolean mConnected = false;
-
+    private String BASE_URL ="http://106.251.70.71:50010/ws/file/";
     private static final int REQUEST_ENABLE_BT = 1 ;
     int mPairedDeviceCount;
     private int SPEECH_TO_TEXT =1;
+    private RetrofitClient client = new RetrofitClient();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -377,6 +385,24 @@ public class LeSttActivity extends AppCompatActivity {
                 displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
                 TV_ble_log.append("[Bluetooth] :  GATT 서버 데이터 수신\n");
                 scroll_ble.fullScroll(View.FOCUS_DOWN);
+
+                ConvertIO io = new ConvertIO();
+
+                client.getClient(BASE_URL).convertIo("application/json",io).enqueue(new Callback<STTModel>() {
+                    @Override
+                    public void onResponse(Call<STTModel> call, Response<STTModel> response) {
+                        Log.d(TAG ,"##REST## Success network");
+                        Log.d(TAG ,"##REST## code:"+response.code());
+                        //Log.d(TAG ,"##REST## response.body().getStatus().Message()"+response.body().getStatus().getMessage());
+
+
+                    }
+                    @Override
+                    public void onFailure(Call<STTModel> call, Throwable t) {
+                        Log.d(TAG ,"##REST## converter False network"+t.toString());
+                    }
+                });
+
             }
         }
     };
