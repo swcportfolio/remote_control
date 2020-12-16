@@ -27,14 +27,14 @@ public class Util {
 
         StringBuilder sb = new StringBuilder();
 
-
+        sb.append("[");
         for (final byte b : bytes) {
             if (!sb.toString().equalsIgnoreCase("[")) {
                 sb.append("");
             }
             sb.append(String.format("%02x", b & 0xff));
         }
-
+        sb.append("]");
 
         return sb.toString();
     }

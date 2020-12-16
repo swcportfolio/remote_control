@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
                 SharedPreferences sharedPreferences = getSharedPreferences("data",MODE_PRIVATE);
                 SharedPreferences.Editor editor  = sharedPreferences.edit();
-                editor.putString("REST ueiRc",ueiRc);
+                editor.putString("ueiRc",ueiRc);
                 editor.commit();
                 Log.d(TAG,"##REST## ueiRc editor.commit : "+ueiRc);
                 logger.LoggerEnd(TAG,"getUeiRc()");

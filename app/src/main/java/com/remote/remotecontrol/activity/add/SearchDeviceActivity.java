@@ -110,15 +110,18 @@ public class SearchDeviceActivity extends AppCompatActivity {
         brands.setBrandsStartWith(brandsStartWith);
         brands.setResultPageIndex(resultPageIndex);
         brands.setResultPageSize(resultPageSize);
-
+        Log.d(TAG,"ueiRc:"+ueiRc+"/region:"+region+"/devTypeCodes:"+devTypeCodes);
+        Log.d(TAG,"devGroupId:"+devGroupId+"/brandsStartWith:"+brandsStartWith+"/resultPageSize:"+resultPageSize);
         client.getClient(ueiRcURL).getBrand("application/json",brands).enqueue(new Callback<BrandModel>() {
             @Override
             public void onResponse(Call<BrandModel> call, Response<BrandModel> response) {
                 Log.d(TAG ,"getBrand Success network");
+                Log.d(TAG ,"getBrand response getResultTotal"+response.body().getResultTotal());
 
                 getBrand = response.body().getBrands();
-                 /*    for(String i:getBrand){
-                    Log.d(TAG,"getBrands : "+i);
+
+                     /*for(String i:getBrand){
+                    Log.d(TAG,"getBrands : " + i);
                 }*/
                 Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {

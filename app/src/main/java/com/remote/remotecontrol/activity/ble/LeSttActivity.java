@@ -39,9 +39,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.remote.remotecontrol.R;
+import com.remote.remotecontrol.retrofit.Convert;
 import com.remote.remotecontrol.retrofit.ConvertIO;
 import com.remote.remotecontrol.retrofit.RetrofitClient;
+import com.remote.remotecontrol.retrofit.RetrofitInterface;
 import com.remote.remotecontrol.retrofit.STTModel;
+import com.remote.remotecontrol.retrofit.SpeechModel;
 
 import org.json.JSONObject;
 
@@ -62,6 +65,9 @@ import java.util.UUID;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.Retrofit.Builder;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LeSttActivity extends AppCompatActivity {
 
@@ -90,11 +96,12 @@ public class LeSttActivity extends AppCompatActivity {
     private String result;
 
     private boolean mConnected = false;
-    private String BASE_URL ="http://106.251.70.71:50010/ws/file/";
+    private String URL ="http://106.251.70.71:50010/ws/file/";
+
     private static final int REQUEST_ENABLE_BT = 1 ;
     int mPairedDeviceCount;
     private int SPEECH_TO_TEXT =1;
-    private RetrofitClient client = new RetrofitClient();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -386,9 +393,51 @@ public class LeSttActivity extends AppCompatActivity {
                 TV_ble_log.append("[Bluetooth] :  GATT 서버 데이터 수신\n");
                 scroll_ble.fullScroll(View.FOCUS_DOWN);
 
-                ConvertIO io = new ConvertIO();
+              //  ConvertIO io = new ConvertIO();
+                Convert io = new Convert();
 
-                client.getClient(BASE_URL).convertIo("application/json",io).enqueue(new Callback<STTModel>() {
+                /*Retrofit retrofit = new Retrofit.Builder().baseUrl(URL).addConverterFactory(GsonConverterFactory.create()).build();
+
+                RetrofitInterface mRetrofitInterface = retrofit.create(RetrofitInterface.class);
+                mRetrofitInterface.getConverter("application/json",io).enqueue(new Callback<SpeechModel>() {
+                    @Override
+                    public void onResponse(Call<SpeechModel> call, Response<SpeechModel> response) {
+                        Log.d(TAG ,"##REST## Success network");
+                        Log.d(TAG ,"##REST## code1:"+response.code());
+                        Log.d(TAG ,"##REST## code2:"+response.code());
+                        Log.d(TAG ,"##REST## getCode:"+response.body().getStatus().getCode());
+                        Log.d(TAG ,"##REST## getMessage:"+response.body().getStatus().getMessage());
+                        if(response.body().getStatus().getCode().equals("200")){
+                            Log.d(TAG ,"##REST## code:200!!");
+
+                        }
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<SpeechModel> call, Throwable t) {
+                        Log.d(TAG ,"##REST## converter False network"+t.toString());
+                    }
+                });*/
+
+
+
+               /* RetrofitClient client = new RetrofitClient();
+
+                client.getClient(BASE_URL).getConverter("application/json",io).enqueue(new Callback<SpeechModel>() {
+                    @Override
+                    public void onResponse(Call<SpeechModel> call, Response<SpeechModel> response) {
+                        Log.d(TAG ,"##REST## Success network");
+                        Log.d(TAG ,"##REST## code:"+response.code());
+                    }
+
+                    @Override
+                    public void onFailure(Call<SpeechModel> call, Throwable t) {
+                        Log.d(TAG ,"##REST## converter False network"+t.toString());
+                    }
+                });*/
+
+                /*client.getClient(BASE_URL).convertIo("application/json",io).enqueue(new Callback<STTModel>() {
                     @Override
                     public void onResponse(Call<STTModel> call, Response<STTModel> response) {
                         Log.d(TAG ,"##REST## Success network");
@@ -401,7 +450,7 @@ public class LeSttActivity extends AppCompatActivity {
                     public void onFailure(Call<STTModel> call, Throwable t) {
                         Log.d(TAG ,"##REST## converter False network"+t.toString());
                     }
-                });
+                });*/
 
             }
         }

@@ -32,7 +32,7 @@ public interface RetrofitInterface {
     Call<UeiRcModel> getUeiRc(@Header("Content-Type") String contentType, @Body UserUeiRC param);
 
     // get Brands
-    @POST("/quicksetlite.svc/GetBrands")
+    @POST("/quicksetlite.svc/GetBrandsLike")
     Call<BrandModel> getBrand(@Header("Content-Type") String contentType, @Body Brands param);
 
     // get Test Key
@@ -42,4 +42,15 @@ public interface RetrofitInterface {
     // hax String send
     @POST("/ws/file/convert")
     Call<STTModel> convertIo(@Header("Content-Type") String contentType, @Body ConvertIO param);
+
+
+
+    // get Test Key
+    @POST("/ws/stt")
+    Call<SpeechModel> getConverter(@Header("Content-Type") String contentType, @Body Convert param);
+
+    /*// get Test Key
+    @POST("/ws/file/convert")
+    Call<SpeechModel> getConverter(@Header("Content-Type") String contentType, @Body Convert param);*/
+
 }
