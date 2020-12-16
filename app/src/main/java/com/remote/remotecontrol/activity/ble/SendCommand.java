@@ -21,12 +21,12 @@ public class SendCommand {
         (byte) 0xD3, 0x00, 0x01, (byte) 0xC0, 0x4A, 0x72, 0x2B, (byte) 0xB6, (byte) 0xE0, 0x10, 0x40, //====> 43byte :삼성 on/off*/
         0x00, 0x00};           //====> 2byte : Checksum
 
-        int demo_str_len = 11 + 43 ;
-        demo_str[5] = 43+3+2;
+        int demo_str_len = 11 + 53 ;
+        demo_str[5] = 53+3+2;
         //demo_str[6] = UEI_SEND_IR_KEY;
 
         demo_str[demo_str_len-2] = demo_str[9];
-        for(int cnt=0;cnt<42;cnt++)
+        for(int cnt=0;cnt<52;cnt++)
         {
             demo_str[demo_str_len-2] ^= demo_str[10+cnt];
         }

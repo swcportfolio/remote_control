@@ -204,57 +204,13 @@ public class BluetoothLeService extends Service {
                         if (firstData.equals("8")) { //Master >> searchData
                             Log.d("GATTService ", "getSearchData");
 
-
-
-                            /**
-                             * ------------------------------------------------------Quick set Command TEST----------------------------
-                             */
-
                             BluetoothGattService openService = gatt.getService(UUID_SERVICE);
-                            BluetoothGattCharacteristic Quick = openService.getCharacteristic(UUID_TX);
-
-                            SendCommand sendCommand = new SendCommand();
-                            byte [] getCommandData = sendCommand.SendCommand();
-
-                            for(int seq= 0 ; seq <4;seq++){
-                                switch (seq){
-                                    case  0:
-                                       byte[] sendData1 = sendCommand.IrSend(getCommandData,(byte)0x00);
-                                        Log.d("GATTService ", "Quick1 : " + Util.byteArrayToHex(sendData1));
-                                        writeCharacteristic(Quick, sendData1);
-                                        break;
-                                    case 1 :
-                                        byte[] sendData2 = sendCommand.IrSend(getCommandData,(byte)0x01);
-                                        Log.d("GATTService ", "Quick2 : " + Util.byteArrayToHex(sendData2));
-                                        writeCharacteristic(Quick, sendData2);
-                                        break;
-                                    case 2 :
-                                        byte[] sendData3 = sendCommand.IrSend(getCommandData,(byte)0x02);
-                                        Log.d("GATTService ", "Quick3 : " + Util.byteArrayToHex(sendData3));
-                                        writeCharacteristic(Quick, sendData3);
-                                        break;
-                                    case 3 :
-                                        byte[] sendData4 = sendCommand.IrSend(getCommandData,(byte)0x03);
-                                        if(sendData4 == null){
-                                            Log.d("GATTService ", "Quick4 : length<54 ");
-                                        }else{
-                                            Log.d("GATTService ", "Quick4 : " + Util.byteArrayToHex(sendData4));
-                                            writeCharacteristic(Quick, sendData4);
-                                        }
-                                        break;
-
-                                }
-                            }
-
-                            /**
-                             * ------------------------------------------------------Quick set Command TEST----------------------------
-                             */
-                          /* BluetoothGattService openService = gatt.getService(UUID_SERVICE);
                             BluetoothGattCharacteristic openMic = openService.getCharacteristic(UUID_TX);
 
-                            byte data[] = Util.hexStringToByteArray("0C00010000000000000000000000000000000000"); // open Mic
+                            byte data[] = Util.hexStringToByteArray("0C00000000000000000000000000000000000000"); // open Mic
+                           // byte data[] = Util.hexStringToByteArray("0A00010000000000000000000000000000000000"); // 초기화
                             Log.d("GATTService ", "Mic_open : " + Util.byteArrayToHex(data));
-                            Log.d(TAG, "GATTService " + writeCharacteristic(openMic, data));*/
+                            Log.d(TAG, "GATTService " + writeCharacteristic(openMic, data));
 
                         } else if (firstData.equals("4")) {
                             Log.d("GATTService ", "Audio_start");
@@ -377,7 +333,43 @@ public class BluetoothLeService extends Service {
                                //String wavFileData = response.body().getData();
 
                                 Log.d(TAG ,"##REST## getData : "+response.body().getData());
+                                if(response.body().getStatus().getCode().equals("200")){
+                                    BluetoothGattService openService = gatt.getService(UUID_SERVICE);
+                                    BluetoothGattCharacteristic Quick = openService.getCharacteristic(UUID_TX);
 
+                                    /*SendCommand sendCommand = new SendCommand();
+                                    byte [] getCommandData = sendCommand.SendCommand();
+
+                                    for(int seq= 0 ; seq <4;seq++){
+                                        switch (seq){
+                                            case  0:
+                                                byte[] sendData1 = sendCommand.IrSend(getCommandData,(byte)0x00);
+                                                Log.d("GATTService ", "Quick1 : " + Util.byteArrayToHex(sendData1));
+                                                writeCharacteristic(Quick, sendData1);
+                                                break;
+                                            case 1 :
+                                                byte[] sendData2 = sendCommand.IrSend(getCommandData,(byte)0x01);
+                                                Log.d("GATTService ", "Quick2 : " + Util.byteArrayToHex(sendData2));
+                                                writeCharacteristic(Quick, sendData2);
+                                                break;
+                                            case 2 :
+                                                byte[] sendData3 = sendCommand.IrSend(getCommandData,(byte)0x02);
+                                                Log.d("GATTService ", "Quick3 : " + Util.byteArrayToHex(sendData3));
+                                                writeCharacteristic(Quick, sendData3);
+                                                break;
+                                            case 3 :
+                                                byte[] sendData4 = sendCommand.IrSend(getCommandData,(byte)0x03);
+                                                if(sendData4 == null){
+                                                    Log.d("GATTService ", "Quick4 : length<54 ");
+                                                }else{
+                                                    Log.d("GATTService ", "Quick4 : " + Util.byteArrayToHex(sendData4));
+                                                    writeCharacteristic(Quick, sendData4);
+                                                }
+                                                break;
+
+                                        }
+                                    }*/
+                                }
 
                                /*byte[] converterByte = Util.hexStringToByteArray(wavFileData);
 
