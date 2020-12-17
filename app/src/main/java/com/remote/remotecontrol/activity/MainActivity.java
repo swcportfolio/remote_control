@@ -26,18 +26,18 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
-    byte data2[] = hexStringToByteArray("2554530a");
+
     private final String TAG = MainActivity.class.getSimpleName();
 
-    private ImageView IV_add,IV_le_stt;
-    private LinearLayout btn_main_1,btn_main_2,btn_main_3,btn_main_4;
+    private ImageView IV_add, IV_le_stt;
+    private LinearLayout btn_main_1, btn_main_2, btn_main_3, btn_main_4;
 
-    private UserUeiRC  userUeiRC = new UserUeiRC();
+    private UserUeiRC userUeiRC = new UserUeiRC();
     private RetrofitClient client = new RetrofitClient();
     private Logger logger = new Logger();
 
     public static final String URL = "https://rcl.ueiquickset.com";
-    private String ueiRcURL = URL+"/quicksetlite.svc/";
+    private String ueiRcURL = URL + "/quicksetlite.svc/";
 
 
     @Override
@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //ImageView btn
-        IV_add    = findViewById(R.id.IV_add);
+        IV_add = findViewById(R.id.IV_add);
         IV_le_stt = findViewById(R.id.IV_le_stt);
 
         //LinearLayout btn
@@ -61,21 +61,35 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        btn_main_1.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, DeviceInfoActivity.class)));
+        btn_main_1.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, DeviceInfoActivity.class);
+            intent.putExtra("image", "tv");
+            startActivity(intent);
 
-        btn_main_2.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, DeviceInfoActivity.class)));
+        });
 
-        btn_main_3.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, DeviceInfoActivity.class)));
+        btn_main_2.setOnClickListener(view -> {
+                    Intent intent = new Intent(MainActivity.this, DeviceInfoActivity.class);
+                    intent.putExtra("image", "fan");
+                    startActivity(intent);
+                }
+        );
+
+        btn_main_3.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, DeviceInfoActivity.class);
+            intent.putExtra("image", "air");
+            startActivity(intent);
+        });
 
         btn_main_4.setOnClickListener(view -> {
-        startActivity(new Intent(MainActivity.this, AddDeviceActivity.class ));
+            startActivity(new Intent(MainActivity.this, AddDeviceActivity.class));
         });
         IV_add.setOnClickListener(view -> {
-            startActivity(new Intent(MainActivity.this, AddDeviceActivity.class ));
+            startActivity(new Intent(MainActivity.this, AddDeviceActivity.class));
         });
 
         //bluetooth, stt 화면 이동
-        IV_le_stt.setOnClickListener(view ->startActivity(new Intent(MainActivity.this, LeSttActivity.class)));
+        IV_le_stt.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, LeSttActivity.class)));
 
     }
 
@@ -84,36 +98,30 @@ public class MainActivity extends AppCompatActivity {
         client.getClient(ueiRcURL).getUeiRc("application/json", userUeiRC).enqueue(new Callback<UeiRcModel>() {
             @Override
             public void onResponse(Call<UeiRcModel> call, Response<UeiRcModel> response) {
-                logger.LoggerStart(TAG,"getUeiRc()");
-                Log.d(TAG ,"##REST## getUeiRc Success network");
+                logger.LoggerStart(TAG, "getUeiRc()");
+                Log.d(TAG, "##REST## getUeiRc Success network");
                 String ueiRc = response.body().getUeiRc();
-                Log.d(TAG,"##REST## ueiRc : "+ueiRc);
+                Log.d(TAG, "##REST## ueiRc : " + ueiRc);
 
-                SharedPreferences sharedPreferences = getSharedPreferences("data",MODE_PRIVATE);
-                SharedPreferences.Editor editor  = sharedPreferences.edit();
-                editor.putString("ueiRc",ueiRc);
+                SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("ueiRc", ueiRc);
                 editor.commit();
-                Log.d(TAG,"##REST## ueiRc editor.commit : "+ueiRc);
-                logger.LoggerEnd(TAG,"getUeiRc()");
+                Log.d(TAG, "##REST## ueiRc editor.commit : " + ueiRc);
+                logger.LoggerEnd(TAG, "getUeiRc()");
             }
+
             @Override
             public void onFailure(Call<UeiRcModel> call, Throwable t) {
-                Log.d(TAG ,"##REST##getUeiRc False network"+t.toString());
+                Log.d(TAG, "##REST##getUeiRc False network" + t.toString());
             }
         });
 
     }
+    /**
+     * &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& bluetooth connect &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+     */
 
-    public byte[] hexStringToByteArray(String s) {
-        byte[] data = new byte[s.length() / 2];
-        for (int i = 0; i < s.length(); i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i + 1), 16));
 
-        }
-        for(int j =0;j<data.length;j++){
-            Log.d("data::",""+data[j]);
-        }
-        return data;
-    }
+
 }

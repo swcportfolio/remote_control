@@ -83,6 +83,8 @@ public class SearchDeviceActivity extends AppCompatActivity {
         actionBar.setDisplayShowTitleEnabled(false); // 기존 title 지우기
         actionBar.setDisplayHomeAsUpEnabled(true);   // 뒤로가기 버튼 만들기
         actionBar.setHomeAsUpIndicator(R.drawable.ic_baseline_back);
+
+        getListData();
     }
 
     @Override
@@ -92,11 +94,17 @@ public class SearchDeviceActivity extends AppCompatActivity {
 
     private void getListData() {
 
+        adapter.remove();
+        adapter.notifyDataSetChanged();
+
         //get devTypeCodes
         Intent intent = getIntent();
          devTypeCodes = intent.getStringExtra("devTypeCodes");
          devGroupId   = intent.getStringExtra("groupIds");
         String brandsStartWith = edt_search.getText().toString();
+        if(brandsStartWith == null || brandsStartWith.isEmpty()) {
+            brandsStartWith = " ";
+        }
         Log.d(TAG,"brandsStartWith:"+brandsStartWith+"/devGroupId:"+devGroupId+"/devTypeCodes:"+devTypeCodes);
 
         //get ueiRc
@@ -112,6 +120,7 @@ public class SearchDeviceActivity extends AppCompatActivity {
         brands.setResultPageSize(resultPageSize);
         Log.d(TAG,"ueiRc:"+ueiRc+"/region:"+region+"/devTypeCodes:"+devTypeCodes);
         Log.d(TAG,"devGroupId:"+devGroupId+"/brandsStartWith:"+brandsStartWith+"/resultPageSize:"+resultPageSize);
+
         client.getClient(ueiRcURL).getBrand("application/json",brands).enqueue(new Callback<BrandModel>() {
             @Override
             public void onResponse(Call<BrandModel> call, Response<BrandModel> response) {
@@ -130,7 +139,7 @@ public class SearchDeviceActivity extends AppCompatActivity {
                         if(getBrand != null){
                             AdapterAdd();
                         }else{
-                            Toast.makeText(getApplicationContext(),"더이상 브랜드가 없습니다.",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(),"브랜드가 없습니다.",Toast.LENGTH_SHORT).show();
                         }
                     }
                 },500);
@@ -171,19 +180,21 @@ public class SearchDeviceActivity extends AppCompatActivity {
             }
         });
 
+        /**
+         * 브랜드 선택(리스트)
+         */
         lv_brand.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                String brandName = ((ListViewItem)adapter.getItem(position)).getBrandName();
 
-               Intent intent = new Intent(getApplicationContext(),IrTestActivity.class);
+                Intent intent = new Intent(getApplicationContext(),AddDeviceInfoActivity.class); //디바이스 정보 입력
                 intent.putExtra("brandName",brandName);
                 intent.putExtra("devTypeCodes",devTypeCodes);
                 intent.putExtra("devGroupId",devGroupId);
                 startActivity(intent);
             }
         });
-
 
     }
     /**

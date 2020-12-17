@@ -62,7 +62,6 @@ public class AddDeviceActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-
     /**
      * Toolbar의 back키 눌렀을 때 동작
      * @param item

@@ -25,18 +25,9 @@
                 android:gravity="center"
                 android:text="블루투스 / STT"
                 android:textSize="23dp"
-                android:layout_marginLeft="50dp"
                 android:textStyle="bold"
                 />
-            <ImageView
-                android:id="@+id/btn_stt"
-                android:layout_width  ="35dp"
-                android:layout_height ="35dp"
-                android:layout_marginLeft="40dp"
-                android:src="@drawable/ic_baseline_mic_24"
-                android:padding="3dp"
-                android:background="@drawable/bluetooth_view"
-                />
+
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
     <ScrollView
@@ -69,7 +60,7 @@
                         android:layout_weight="1"
                         android:text="Search" />
 
-                    <Button
+                <!--    <Button
                         android:id="@+id/btn_data"
                         android:layout_width="100dp"
                         android:layout_height="wrap_content"
@@ -77,7 +68,7 @@
                         android:layout_marginTop="10dp"
                         android:layout_marginEnd="10dp"
                         android:layout_weight="1"
-                        android:text="data" />
+                        android:text="data" />-->
                 </LinearLayout>
 
                 <TextView
@@ -135,7 +126,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="1000dp"
+                android:layout_height="0dp"
                 android:layout_margin="5dp"
                 android:orientation="vertical">
 

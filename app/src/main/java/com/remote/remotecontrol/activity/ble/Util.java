@@ -13,6 +13,9 @@ public class Util {
     public static ArrayList<Byte> alldata = new ArrayList<>();
     public static int bp = 128;
 
+    public static void Initilization(){
+        alldata.clear();
+    }
     public static String bytesToHex(byte[] bytes) {
         byte[] hexChars = new byte[bytes.length * 2];
 

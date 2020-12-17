@@ -62,6 +62,7 @@
             android:textStyle="bold"
             android:text="Step2.\n브랜드 선택"
             android:textSize="17dp" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -70,17 +71,7 @@
             android:gravity="center"
             android:paddingTop="2dp"
             android:paddingBottom="2dp"
-            android:text="Step3.\n기기 테스트"
-            android:textSize="17dp" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="#EFEFEF"
-            android:gravity="center"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:text="Step4.\n정보 입력"
+            android:text="Step3.\n정보 입력"
             android:textSize="17dp" />
 
     </LinearLayout>

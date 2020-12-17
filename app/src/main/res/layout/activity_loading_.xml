@@ -10,23 +10,11 @@
     >
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="240dp"
-        android:layout_height="140dp"
-        android:src="@drawable/ic_baseline_lens_24"
+        android:layout_width="362dp"
+        android:layout_height="285dp"
+        android:layout_centerInParent="true"
         android:layout_marginTop="265dp"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        />
-    <TextView
-        android:id="@+id/txt_server"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:text="App Name"
-        android:layout_marginTop="20dp"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@+id/imageView"
-        />
+        android:src="@drawable/rc_img" />
 
 
 
