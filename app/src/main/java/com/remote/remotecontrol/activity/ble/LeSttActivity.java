@@ -225,7 +225,7 @@ public class LeSttActivity extends AppCompatActivity {
         //페어링되었던 기기 갯수
         mPairedDeviceCount = mDevices.size();
         //Alertdialog 생성(activity에는 context입력)
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this,android.R.style.Theme_DeviceDefault_Light_Dialog_Alert);
         builder.setTitle("Bonded Device");
         TV_ble_log.append("[Bluetooth] : Bonded Device..\n");
         scroll_ble.fullScroll(View.FOCUS_DOWN);
@@ -362,6 +362,7 @@ public class LeSttActivity extends AppCompatActivity {
             scroll_ble.fullScroll(View.FOCUS_DOWN);
         }
     };
+
     // 서비스에서 발생한 다양한 이벤트를 처리
     private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() { //Broadcast Receiver는 BluetoothLeService로부터 연결상태와 데이터들을 받아오는 역활을 한다.
         @Override
@@ -382,7 +383,13 @@ public class LeSttActivity extends AppCompatActivity {
                 Log.d(TAG,"GATT service 연결이 끊어졌습니다.");
                 TV_ble_log.append("[Bluetooth] :  GATT 서버 끊김\n");
                 scroll_ble.fullScroll(View.FOCUS_DOWN);
-             //   unbindService(mServiceConnection); //서비스 해제 한다.
+                mUnregisterReceiver();
+                try {
+                    unbindService(mServiceConnection); //서비스 해제 한다.
+                }catch (Exception e){
+                    e.printStackTrace();
+                    Log.d(TAG,"unbindService error");
+                }
                 clearUI();
 
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {// ACTION_GATT_SERVICES_DISCOVERED : GATT 서비스를 발견했습니다.
@@ -539,7 +546,6 @@ public class LeSttActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        mUnregisterReceiver();
     }
 
     @Override
@@ -581,4 +587,6 @@ public class LeSttActivity extends AppCompatActivity {
 
         }
     }
+
+
 }
