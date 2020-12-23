@@ -39,6 +39,7 @@
         android:layout_gravity="center"
         android:layout_marginTop="10dp">
         <ImageView
+            android:id="@+id/image_edit"
             android:layout_width="280dp"
             android:layout_height="200dp"
             android:src="@drawable/ic_tv"
@@ -56,7 +57,8 @@
             android:textColor="#8F8F8F"
             android:textSize="20dp"
             android:layout_marginLeft="50dp"/>
-        <EditText
+        <TextView
+            android:id="@+id/txt_brand"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
             android:hint="SAMSUNG"
@@ -71,7 +73,8 @@
             android:textSize="20dp"
             android:layout_marginLeft="50dp"
             android:layout_marginTop="30dp"/>
-        <EditText
+        <TextView
+            android:id="@+id/txt_type"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
             android:hint="TV"
@@ -88,6 +91,7 @@
             android:layout_marginTop="30dp"
             />
         <EditText
+            android:id="@+id/edit_nickName"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
             android:hint="거실 TV"
@@ -97,7 +101,7 @@
 
     </LinearLayout>
     <LinearLayout
-
+        android:id="@+id/btn_edit"
         android:layout_width="230dp"
         android:layout_height="40dp"
         android:layout_gravity="center"

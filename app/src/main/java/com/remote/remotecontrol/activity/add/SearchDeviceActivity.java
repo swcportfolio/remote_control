@@ -143,7 +143,6 @@ public class SearchDeviceActivity extends AppCompatActivity {
                         }
                     }
                 },500);
-
             }
             @Override
             public void onFailure(Call<BrandModel> call, Throwable t) {

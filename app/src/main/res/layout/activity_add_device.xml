@@ -93,7 +93,9 @@
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:layout_marginRight="5dp"
-                    app:cardCornerRadius="10dp">
+                    app:cardCornerRadius="10dp"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="10dp">
 
                     <LinearLayout
                         android:id="@+id/btn_1"
@@ -109,7 +111,7 @@
                             android:layout_gravity="center"
                             android:layout_marginTop="10dp"
                             android:padding="0dp"
-                            android:src="@drawable/ic_ha" />
+                            android:src="@drawable/ic_tv" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -125,7 +127,8 @@
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:layout_marginLeft="5dp"
-                    app:cardCornerRadius="10dp">
+                    app:cardCornerRadius="10dp"
+                    android:layout_weight="1">
 
                     <LinearLayout
                         android:id="@+id/btn_2"
@@ -141,7 +144,7 @@
                             android:layout_gravity="center"
                             android:layout_marginTop="10dp"
                             android:padding="0dp"
-                            android:src="@drawable/ic_ha" />
+                            android:src="@drawable/ic_ott" />
 
 
                         <TextView
@@ -159,7 +162,9 @@
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:layout_marginLeft="5dp"
-                    app:cardCornerRadius="10dp">
+                    app:cardCornerRadius="10dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="10dp">
 
                     <LinearLayout
                         android:id="@+id/btn_3"
@@ -175,7 +180,7 @@
                             android:layout_gravity="center"
                             android:layout_marginTop="10dp"
                             android:padding="0dp"
-                            android:src="@drawable/ic_ha" />
+                            android:src="@drawable/ic_settopbox" />
 
 
                         <TextView
@@ -201,7 +206,9 @@
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:layout_marginRight="5dp"
-                    app:cardCornerRadius="10dp">
+                    app:cardCornerRadius="10dp"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="10dp">
 
                     <LinearLayout
                         android:id="@+id/btn_4"
@@ -217,7 +224,7 @@
                             android:layout_gravity="center"
                             android:layout_marginTop="10dp"
                             android:padding="0dp"
-                            android:src="@drawable/ic_ha" />
+                            android:src="@drawable/ic_audio" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -233,7 +240,8 @@
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:layout_marginLeft="5dp"
-                    app:cardCornerRadius="10dp">
+                    app:cardCornerRadius="10dp"
+                    android:layout_weight="1">
 
                     <LinearLayout
                         android:id="@+id/btn_5"
@@ -249,7 +257,7 @@
                             android:layout_gravity="center"
                             android:layout_marginTop="10dp"
                             android:padding="0dp"
-                            android:src="@drawable/ic_ha" />
+                            android:src="@drawable/ic_projector" />
 
 
                         <TextView
@@ -267,7 +275,9 @@
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:layout_marginLeft="5dp"
-                    app:cardCornerRadius="10dp">
+                    app:cardCornerRadius="10dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="10dp">
 
                     <LinearLayout
                         android:id="@+id/btn_6"
@@ -283,7 +293,7 @@
                             android:layout_gravity="center"
                             android:layout_marginTop="10dp"
                             android:padding="0dp"
-                            android:src="@drawable/ic_ha" />
+                            android:src="@drawable/ic_light" />
 
 
                         <TextView
@@ -309,7 +319,9 @@
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:layout_marginRight="5dp"
-                    app:cardCornerRadius="10dp">
+                    app:cardCornerRadius="10dp"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="10dp">
 
                     <LinearLayout
                         android:id="@+id/btn_7"
@@ -326,7 +338,7 @@
                             android:layout_gravity="center"
                             android:layout_marginTop="10dp"
                             android:padding="0dp"
-                            android:src="@drawable/ic_ha" />
+                            android:src="@drawable/ic_fan" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -342,7 +354,8 @@
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:layout_marginLeft="5dp"
-                    app:cardCornerRadius="10dp">
+                    app:cardCornerRadius="10dp"
+                    android:layout_weight="1">
 
                     <LinearLayout
                         android:id="@+id/btn_8"
@@ -358,7 +371,7 @@
                             android:layout_gravity="center"
                             android:layout_marginTop="10dp"
                             android:padding="0dp"
-                            android:src="@drawable/ic_ha" />
+                            android:src="@drawable/ic_aircon" />
 
 
                         <TextView
@@ -376,7 +389,9 @@
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:layout_marginLeft="5dp"
-                    android:background="@android:color/transparent">
+                    android:background="@android:color/transparent"
+                    android:layout_weight="1"
+                    android:layout_marginRight="10dp">
                 </View>
 
             </LinearLayout>

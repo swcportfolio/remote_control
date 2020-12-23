@@ -10,18 +10,27 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.remote.remotecontrol.R;
+import com.remote.remotecontrol.TypeCoversion;
 import com.remote.remotecontrol.activity.MainActivity;
+import com.remote.remotecontrol.database.DBHelper;
 
 public class AddDeviceInfoActivity extends AppCompatActivity {
     private static final String TAG = AddDeviceInfoActivity.class.getSimpleName();
+
     private LinearLayout btn_add;
-    private TextView txt_info_name,txt_info_type,txt_info_brand;
+    private TextView txt_info_type,txt_info_brand;
+    private EditText edit_info_name;
     private ImageView ImV_info_image;
+    private String devTypeCodes,devGroupId,brandName;
+
+    private TypeCoversion coversion = new TypeCoversion();
 
 
     @Override
@@ -29,15 +38,12 @@ public class AddDeviceInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_device_info);
 
-
         btn_add = findViewById(R.id.btn_add);
 
         //TextView
         txt_info_brand = findViewById(R.id.txt_info_brand);
         txt_info_type = findViewById(R.id.txt_info_type);
-        txt_info_name = findViewById(R.id.txt_info_name);
-
-
+        edit_info_name = findViewById(R.id.edit_info_name);
 
         //Image
         ImV_info_image = findViewById(R.id.ImV_info_image);
@@ -53,15 +59,16 @@ public class AddDeviceInfoActivity extends AppCompatActivity {
 
         //TextView set
         Intent intent = getIntent();
-        String brandName = intent.getStringExtra("brandName");
-        String devTypeCodes = intent.getStringExtra("devTypeCodes");
-        String devGroupId = intent.getStringExtra("devGroupId");
+        brandName = intent.getStringExtra("brandName");
+        devTypeCodes = intent.getStringExtra("devTypeCodes");
+        devGroupId = intent.getStringExtra("devGroupId");
 
         if(brandName.isEmpty()||brandName == null||devTypeCodes.isEmpty()||devTypeCodes == null){
             Log.e(TAG,"Text info NULL");
         }else{
             txt_info_brand.setText(brandName);
-            deviceTypeConversion(devGroupId);
+            txt_info_type.setText(coversion.devGroupIdConversion(devGroupId));
+            ImV_info_image.setImageResource(coversion.imageConversion(devGroupId));
         }
 
 
@@ -74,7 +81,7 @@ public class AddDeviceInfoActivity extends AppCompatActivity {
         btn_6.setOnClickListener(view-> deviceType("5","Lighting","H"));
         btn_7.setOnClickListener(view-> deviceType("6","FAN","H"));
         btn_8.setOnClickListener(view-> deviceType("7","Air Conditioner","Z"));*/
-    private void deviceTypeConversion( String devGroupId) {
+/*    private void deviceTypeConversion( String devGroupId) {
 
         switch (devGroupId){
             case "0" :txt_info_type.setText("TV");break;
@@ -86,7 +93,7 @@ public class AddDeviceInfoActivity extends AppCompatActivity {
             case "6" :txt_info_type.setText("FAN");break;
             case "7" :txt_info_type.setText("Air Conditioner");break;
         }
-    }
+    }*/
 
     @Override
     protected void onResume() {
@@ -95,19 +102,26 @@ public class AddDeviceInfoActivity extends AppCompatActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(AddDeviceInfoActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_Alert);
                     builder.setTitle("가전 등록");
                     builder.setMessage("정상적으로 가전이 등록되었습니다.");
-                    builder.setPositiveButton("예", (dialogInterface, i) -> {
-                        SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+                    builder.setPositiveButton("확인", (dialogInterface, i) -> {
+                        /*SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
                         SharedPreferences.Editor editor     = sharedPreferences.edit();
                         editor.clear();
-                        editor.commit();
-
-                        Intent intent = new Intent(AddDeviceInfoActivity.this, MainActivity.class); // 로그인 화면으로 이동
+                        editor.commit();*/
+                        infoInsert();
+                        Intent intent = new Intent(AddDeviceInfoActivity.this, MainActivity.class);
                         startActivity(intent);
-                        finish();
+
                     });
                     builder.show();
         }
         );
+    }
+
+    private void infoInsert() {
+        String nickName = edit_info_name.getText().toString();
+        final DBHelper dbHelper = new DBHelper(getApplicationContext(), "remote.db", null, 1);
+        dbHelper.insert(devTypeCodes, brandName, devGroupId,nickName);
+
     }
 
     /**

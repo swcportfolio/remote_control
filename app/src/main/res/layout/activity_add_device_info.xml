@@ -107,7 +107,7 @@
             android:layout_height="wrap_content"
             android:hint="SAMSUNG"
             android:textStyle="bold"
-            android:textSize="20dp"
+            android:textSize="18dp"
             android:layout_marginLeft="50dp"/>
         <TextView
             android:layout_width="match_parent"
@@ -123,7 +123,7 @@
             android:layout_height="wrap_content"
             android:hint="TV"
             android:textStyle="bold"
-            android:textSize="20dp"
+            android:textSize="18dp"
             android:layout_marginLeft="50dp"/>
         <TextView
 
@@ -135,13 +135,13 @@
             android:layout_marginLeft="50dp"
             android:layout_marginTop="10dp"
             />
-        <TextView
-            android:id="@+id/txt_info_name"
+        <EditText
+            android:id="@+id/edit_info_name"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:hint="거실 TV"
+            android:hint="예) 거실 TV, 안방 에어컨"
             android:textStyle="bold"
-            android:textSize="20dp"
+            android:textSize="18dp"
             android:layout_marginLeft="50dp"/>
 
     </LinearLayout>

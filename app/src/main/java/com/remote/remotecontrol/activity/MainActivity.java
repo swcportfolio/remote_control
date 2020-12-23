@@ -1,5 +1,6 @@
 package com.remote.remotecontrol.activity;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -23,19 +24,26 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SimpleExpandableListAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.remote.remotecontrol.Logger;
 import com.remote.remotecontrol.R;
+import com.remote.remotecontrol.TypeCoversion;
 import com.remote.remotecontrol.activity.add.AddDeviceActivity;
 import com.remote.remotecontrol.activity.add.SearchDeviceActivity;
 import com.remote.remotecontrol.activity.ble.BluetoothLeService;
 import com.remote.remotecontrol.activity.ble.GattAttributes;
 import com.remote.remotecontrol.activity.ble.LeSttActivity;
 import com.remote.remotecontrol.activity.info.DeviceInfoActivity;
+import com.remote.remotecontrol.database.DBHelper;
+import com.remote.remotecontrol.gridview.SingerAdapter;
+import com.remote.remotecontrol.gridview.SingerItem;
 import com.remote.remotecontrol.retrofit.RetrofitClient;
 import com.remote.remotecontrol.retrofit.UeiRcModel;
 import com.remote.remotecontrol.retrofit.UserUeiRC;
@@ -56,25 +64,33 @@ public class MainActivity extends AppCompatActivity {
 
     private final String TAG = MainActivity.class.getSimpleName();
 
-    private ImageView IV_add, IV_le_stt;
-    private LinearLayout btn_main_1, btn_main_2, btn_main_3, btn_main_4;
+    private ImageView btn_add, IV_le_stt;
+    private GridView gridView;
+    private TextView txt_deviceCount;
 
     private UserUeiRC userUeiRC = new UserUeiRC();
     private RetrofitClient client = new RetrofitClient();
     private Logger logger = new Logger();
+    private DBHelper dbHelper;
+    private TypeCoversion coversion = new TypeCoversion();
 
     private Set<BluetoothDevice> mDevices;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice mRemoteDevice;
     private BluetoothLeService mBluetoothLeService;
+    private SingerAdapter singerAdapter;
 
     public static final String URL = "https://rcl.ueiquickset.com";
     private String ueiRcURL = URL + "/quicksetlite.svc/";
-    private String mDeviceName,mDeviceAddress ;
+    private String mDeviceAddress;
+    private String[] parsing;
+    private String[] parsingGroupId;
 
-    private static final int REQUEST_ENABLE_BT = 1 ;
+    private static final int REQUEST_ENABLE_BT = 1;
+    private int REQUEST = 1;
     private int mPairedDeviceCount;
-    private static boolean mConnected;
+
+    private boolean mConnected;
 
 
     @Override
@@ -83,14 +99,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //ImageView btn
-        IV_add = findViewById(R.id.IV_add);
+        btn_add = findViewById(R.id.btn_add);
         IV_le_stt = findViewById(R.id.IV_le_stt);
 
-        //LinearLayout btn
-        btn_main_1 = findViewById(R.id.btn_main_1);
-        btn_main_2 = findViewById(R.id.btn_main_2);
-        btn_main_3 = findViewById(R.id.btn_main_3);
-        btn_main_4 = findViewById(R.id.btn_main_4);
+        //gridView
+        gridView = findViewById(R.id.gridView);
+
+        //textView
+        txt_deviceCount = findViewById(R.id.txt_deviceCount);
+
+        singerAdapter = new SingerAdapter();
+        singerAdapter.SingerAdapter(getApplicationContext());
+        gridView.setAdapter(singerAdapter);
 
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter()); //Broadcast Receiver 등록
         getUeiRc();
@@ -99,32 +119,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        btn_main_1.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, DeviceInfoActivity.class);
-            intent.putExtra("image", "tv");
-            startActivity(intent);
-
-        });
-
-        btn_main_2.setOnClickListener(view -> {
-                    Intent intent = new Intent(MainActivity.this, DeviceInfoActivity.class);
-                    intent.putExtra("image", "fan");
-                    startActivity(intent);
-                }
-        );
-
-        btn_main_3.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, DeviceInfoActivity.class);
-            intent.putExtra("image", "air");
-            startActivity(intent);
-        });
-
-        btn_main_4.setOnClickListener(view -> {
-            startActivity(new Intent(MainActivity.this, AddDeviceActivity.class));
-        });
-        IV_add.setOnClickListener(view -> {
-            startActivity(new Intent(MainActivity.this, AddDeviceActivity.class));
-        });
 
         //bluetooth, stt 화면 이동
         IV_le_stt.setOnClickListener(view -> checkBluetooth());
@@ -135,6 +129,26 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+        btn_add.setOnClickListener(view -> {
+            startActivityForResult(new Intent(MainActivity.this, AddDeviceActivity.class), REQUEST);
+        });
+
+        gridView.setOnItemClickListener((parent, view, position, id) -> {
+            if (singerAdapter.getItem(position).getName().equals("추가하기")) {
+                startActivity(new Intent(getApplicationContext(), AddDeviceActivity.class));
+
+            } else {
+                Intent intent = new Intent(getApplicationContext(), DeviceInfoActivity.class);
+                intent.putExtra("position", position);
+                Log.d(TAG, "positionValue:" + position);
+                startActivity(intent);
+            }
+        });
+        /*gridView.setOnItemClickListener((parent, view, position, id) -> {
+
+
+        });*/
     }
 
     private void getUeiRc() {
@@ -162,20 +176,32 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST) {
+            if (resultCode == RESULT_OK) {
+                String result = data.getStringExtra("result");
+                Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
     /**
      * &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& bluetooth connect &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
      */
     private void checkBluetooth() {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        if(mBluetoothAdapter == null){
-            Log.d(TAG,"Bluetooth no available");
-        }else{
+        if (mBluetoothAdapter == null) {
+            Log.d(TAG, "Bluetooth no available");
+        } else {
             // 장치가 블루투스 지원하는 경우
             if (!mBluetoothAdapter.isEnabled()) {
                 // 블루투스를 지원하지만 비활성 상태인 경우
                 // 블루투스를 활성 상태로 바꾸기 위해 사용자 동의 요첨
-                Intent enableBtIntent = new Intent( BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             } else {
                 // 블루투스를 지원하며 활성 상태인 경우
@@ -184,6 +210,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
     private void selectDevice() {
         // 페어링되었던 기기 목록 획득
         mDevices = mBluetoothAdapter.getBondedDevices();
@@ -199,11 +226,11 @@ public class MainActivity extends AppCompatActivity {
             listItems.add(device.getName());
         }
 
-        if(listItems.size() == 0){
+        if (listItems.size() == 0) {
             //no bonded device => searching
             Log.d("Bluetooth", "No bonded device");
             // scroll_ble.fullScroll(View.FOCUS_DOWN);
-        }else{
+        } else {
             Log.d("Bluetooth", "Find bonded device");
 
             //scroll_ble.fullScroll(View.FOCUS_DOWN);
@@ -217,15 +244,13 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(DialogInterface dialog, int which) {
                     Dialog dialog_ = (Dialog) dialog;
                     // 취소
-                    if (which == listItems.size()-1) {
+                    if (which == listItems.size() - 1) {
                         Toast.makeText(dialog_.getContext(), "Choose cancel", Toast.LENGTH_SHORT).show();
                     } else {
-                        String  selectedDeviceName =items[which].toString();
-                        mRemoteDevice  = getDeviceFromBondedList(selectedDeviceName);
-                        mDeviceName    = mRemoteDevice.getName();
+                        String selectedDeviceName = items[which].toString();
+                        mRemoteDevice = getDeviceFromBondedList(selectedDeviceName);
                         mDeviceAddress = mRemoteDevice.getAddress();
-                        Log.d(TAG,"Device Name : "+mRemoteDevice.getName()+"   DeviceAddress : "+mRemoteDevice.getAddress());
-                        //scroll_ble.fullScroll(View.FOCUS_DOWN);
+                        Log.d(TAG, "Device Name : " + mRemoteDevice.getName() + "   DeviceAddress : " + mRemoteDevice.getAddress());
                         DeviceControl();
                     }
                 }
@@ -236,6 +261,7 @@ public class MainActivity extends AppCompatActivity {
             alert.show();   //alert 시작
         }
     }
+
     private void DeviceControl() {
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         boolean isBind = bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE); //bindService->Service를 실행하고 결과를 Activity의 UI에 반영해주는 기능, mServiceConnection함수에서 연결 요청결과 값을 받는다.
@@ -250,11 +276,11 @@ public class MainActivity extends AppCompatActivity {
                 if (mBluetoothLeService != null) {
                     final boolean result = mBluetoothLeService.connect(mDeviceAddress);
                     Log.d(TAG, "Connect request result=" + result);
-                }else{
+                } else {
                     Log.d(TAG, "mBluetoothLeService null");
                 }
             }
-        },1000);
+        }, 1000);
     }
 
     // Code to manage Service lifecycle.
@@ -269,13 +295,14 @@ public class MainActivity extends AppCompatActivity {
             }
             // Automatically connects to the device upon successful start-up initialization.
             boolean connect = mBluetoothLeService.connect(mDeviceAddress);// 장치 연결
-            Log.d(TAG,"connect : "+connect);
+            Log.d(TAG, "connect : " + connect);
             //scroll_ble.fullScroll(View.FOCUS_DOWN);
         }
+
         @Override
         public void onServiceDisconnected(ComponentName componentName) { // 연결이 안되었을 경우
             mBluetoothLeService = null;
-            Toast.makeText(getApplicationContext(),"연결 실패 다시 시도바랍니다.",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "연결 실패 다시 시도바랍니다.", Toast.LENGTH_SHORT).show();
         }
     };
 
@@ -300,40 +327,40 @@ public class MainActivity extends AppCompatActivity {
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) { // ACTION_GATT_CONNECTED : GATT 서버에 연결되었습니다.
                 mConnected = true;
                 //updateConnectionState(R.string.connected);
-               // invalidateOptionsMenu();
-                Log.d(TAG,"GATT service GATT 서버");
-               // TV_ble_log.append("[Bluetooth] :  GATT 서버 연결\n");
-               // scroll_ble.fullScroll(View.FOCUS_DOWN);
+                // invalidateOptionsMenu();
+                Log.d(TAG, "GATT service GATT 서버");
+                // TV_ble_log.append("[Bluetooth] :  GATT 서버 연결\n");
+                // scroll_ble.fullScroll(View.FOCUS_DOWN);
 
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) { // ACTION_GATT_DISCONNECTED : GATT 서버에서 연결이 끊어졌습니다.
                 mConnected = false;
                 //updateConnectionState(R.string.disconnected);
-               //invalidateOptionsMenu();
-                Log.d(TAG,"GATT service 연결이 끊어졌습니다.");
-                Toast.makeText(getApplicationContext(),"블루투스 사전 연결을 확인 바랍니다.",Toast.LENGTH_LONG).show();
-              //  TV_ble_log.append("[Bluetooth] :  GATT 서버 끊김\n");
-               // scroll_ble.fullScroll(View.FOCUS_DOWN);
-                  unbindService(mServiceConnection); //서비스 해제 한다.
-               // clearUI();
+                //invalidateOptionsMenu();
+                Log.d(TAG, "GATT service 연결이 끊어졌습니다.");
+                Toast.makeText(getApplicationContext(), "블루투스 사전 연결을 확인 바랍니다.", Toast.LENGTH_LONG).show();
+                //  TV_ble_log.append("[Bluetooth] :  GATT 서버 끊김\n");
+                // scroll_ble.fullScroll(View.FOCUS_DOWN);
+                unbindService(mServiceConnection); //서비스 해제 한다.
+                // clearUI();
                 mUnregisterReceiver();
                 IV_le_stt.setBackground(getDrawable(bluetooth_view));
 
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {// ACTION_GATT_SERVICES_DISCOVERED : GATT 서비스를 발견했습니다.
                 // Show all the supported services and characteristics on the user interface.
-               // TV_ble_log.append("[Bluetooth] :  GATT 서버 발견\n");
+                // TV_ble_log.append("[Bluetooth] :  GATT 서버 발견\n");
                 //scroll_ble.fullScroll(View.FOCUS_DOWN);
-               // displayGattServices(mBluetoothLeService.getSupportedGattServices());
+                // displayGattServices(mBluetoothLeService.getSupportedGattServices());
                 IV_le_stt.setBackground(getDrawable(bluetooth_view_on));
-                Toast.makeText(getApplicationContext(),"연결 성공",Toast.LENGTH_SHORT).show();
-                Log.d(TAG,"GATTService ####리모컨과 연결이 완료되었습니다.####");
+                Toast.makeText(getApplicationContext(), "연결 성공", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "GATTService ####리모컨과 연결이 완료되었습니다.####");
 
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) { /** ACTION_DATA_AVAILABLE : 기기에서 수신 된 데이터입니다. 이것은 읽기의 결과 일 수 있습니다.**/
                 displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
-               // TV_ble_log.append("[Bluetooth] :  GATT 서버 데이터 수신\n");
-               // scroll_ble.fullScroll(View.FOCUS_DOWN);
+                // TV_ble_log.append("[Bluetooth] :  GATT 서버 데이터 수신\n");
+                // scroll_ble.fullScroll(View.FOCUS_DOWN);
                 String resultData = intent.getStringExtra(BluetoothLeService.EXTRA_DATA);
-               // TV_stt_log.append("STT 결과:"+resultData+"\n");
-               // scroll_stt.fullScroll(View.FOCUS_DOWN);
+                // TV_stt_log.append("STT 결과:"+resultData+"\n");
+                // scroll_stt.fullScroll(View.FOCUS_DOWN);
 
 
             }
@@ -403,9 +430,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayData(String data) {
         if (data != null) {
-            Log.d(TAG,"GATTService receive Data");
+            Log.d(TAG, "GATTService receive Data");
         }
     }
+
     private static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
@@ -414,6 +442,7 @@ public class MainActivity extends AppCompatActivity {
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
         return intentFilter;
     }
+
     /**
      * receiver 해체 함수
      */
@@ -422,36 +451,70 @@ public class MainActivity extends AppCompatActivity {
             Log.d("GATT_SERVICES", "mUnregisterReceiver");
             getApplicationContext().unregisterReceiver(mGattUpdateReceiver); //Receiver 해제
 
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
 
         } catch (Exception e) {
 
-        }finally {
+        } finally {
 
         }
     }
+
     @Override
     protected void onStart() {
         super.onStart();
+        Log.d(TAG, "onStart Execution");
+        singerAdapter.notifyDataSetChanged();
+
         //GATT sever connect check
-        if(isMobileServiceRunning()){
+        if (isMobileServiceRunning()) {
             IV_le_stt.setBackground(getDrawable(bluetooth_view_on));
-            Log.d(TAG,"bluetooth_view_on");
-        }else{
+            Log.d(TAG, "bluetooth_view_on");
+        } else {
             IV_le_stt.setBackground(getDrawable(bluetooth_view));
-            Log.d(TAG,"bluetooth_view_off");
+            Log.d(TAG, "bluetooth_view_off");
         }
+
+        dbHelper = new DBHelper(getApplicationContext(), "remote.db", null, 1);
+        String resultData = dbHelper.getResult();
+        String groupIdData = dbHelper.getGroupId();
+
+        if (!resultData.isEmpty()) {
+            parsing        = resultData.split("\n");
+            parsingGroupId = groupIdData.split("\n");
+
+            for (int i = 0; i < parsing.length; i++) {
+                singerAdapter.addItem(new SingerItem(parsing[i],coversion.imageConversion(parsingGroupId[i])));
+            }
+        }
+
+        // device Count
+        try {
+            txt_deviceCount.setText("등록된 가전 : " + singerAdapter.getCount() + "개");
+            Log.d(TAG, "singerAdapter.getCount():" + singerAdapter.getCount());
+        } catch (Exception e) {
+            Log.d(TAG, "등록된 가전 없음");
+            //  txt_deviceCount.setText("등록된 가전 : 0개");
+        }
+        singerAdapter.addItem(new SingerItem("추가하기", R.drawable.ic_baseline_add_circle_outline_24));
+        singerAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        singerAdapter.remove();
     }
 
     public boolean isMobileServiceRunning() {
-        try{
+        try {
             ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
             for (ActivityManager.RunningServiceInfo rsi : am.getRunningServices(Integer.MAX_VALUE)) {
                 if (BluetoothLeService.class.getName().equals(rsi.service.getClassName()))
                     return true;
             }
-        }catch (Exception e){
-            Log.d("msg","isMoblicServiceRunning error");
+        } catch (Exception e) {
+            Log.d("msg", "isMoblicServiceRunning error");
         }
         return false;
     }
